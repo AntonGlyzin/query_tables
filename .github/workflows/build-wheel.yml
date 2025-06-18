@@ -56,34 +56,11 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-            fetch-depth: 0
-
-      - name: Create Tag
-        run: |
-            TAG=${{ needs.build.outputs.tag_name }}
-            git config user.name "GitHub Actions Bot"
-            git config user.email "bot@example.com"
-            git tag -a "$TAG" -m "Automatically generated tag from GitHub Actions"
-            git push origin "$TAG"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - uses: actions/download-artifact@v4
       - name: Create Release
-        run: gh release create --draft --title "${{ needs.build.outputs.tag_name }}" \
-            --repo ${{ github.repository }} ${{ github.ref_name }} dist/*
-            --target ${{ github.sha }} ${{ needs.build.outputs.tag_name }}
+        run: gh release create --draft --repo ${{ github.repository }} ${{ github.ref_name }} dist/*
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Attach artifacts to release
-        run: |
-          gh release upload ${{ needs.build.outputs.tag_name }} dist/*
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
 
 
   publish-pypi:
