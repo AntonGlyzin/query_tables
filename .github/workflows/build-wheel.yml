@@ -14,12 +14,14 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
 
     - name: Count Commits with Prefix
       id: count-commits
       run: |
-        echo "COUNT_COMMITS_FIX=$(git log --oneline --grep="^fix:" | wc -l)" >> $GITHUB_ENV
-        echo "COUNT_COMMITS_FEAT=$(git log --oneline --grep="^feat:" | wc -l)" >> $GITHUB_ENV
+        echo "COUNT_COMMITS_FIX=$(git log --oneline --grep="fix:" | wc -l)" >> $GITHUB_ENV
+        echo "COUNT_COMMITS_FEAT=$(git log --oneline --grep="feat:" | wc -l)" >> $GITHUB_ENV
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -47,6 +49,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Generate New Tag
         id: generate_tag
