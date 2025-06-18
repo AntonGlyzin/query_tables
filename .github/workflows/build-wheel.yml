@@ -45,6 +45,9 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Generate New Tag
         id: generate_tag
         run: |
