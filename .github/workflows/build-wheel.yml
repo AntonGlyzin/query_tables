@@ -32,7 +32,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
       - name: Create Release
         run: gh release create --draft --repo ${{ github.repository }} ${{ github.ref_name }} artifact/*
         env:
@@ -45,7 +45,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: artifact/
