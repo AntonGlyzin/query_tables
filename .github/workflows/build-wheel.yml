@@ -47,31 +47,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Generate New Tag
-        id: generate_tag
-        run: |
-          DATE=$(date +%Y.%m.%d)
-          COMMIT_COUNT=$(git rev-list HEAD | wc -l)
-          echo "::set-output name=TAG_NAME::${DATE}.${COMMIT_COUNT}"
-    
-      - name: Create Tag
-        run: |
-          TAG=${{ steps.generate_tag.outputs.TAG_NAME }}
-          git config user.name "GitHub Actions Bot"
-          git config user.email "bot@example.com"
-          git tag -a "$TAG" -m "Automatically generated tag from GitHub Actions"
-          git push origin "$TAG"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
       - uses: actions/download-artifact@v4
       - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/')
         run: |
           gh release create --draft --repo ${{ github.repository }} ${{ github.ref_name }} dist/*
         env:
