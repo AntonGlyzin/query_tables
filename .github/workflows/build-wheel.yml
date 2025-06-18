@@ -49,6 +49,16 @@ jobs:
         name: dist
         path: dist/*.whl
 
+    - name: Create Tag
+      run: |
+        TAG=${{ steps.generate_tag.outputs.TAG_NAME }}
+        git config user.name "GitHub Actions Bot"
+        git config user.email "bot@example.com"
+        git tag -a "$TAG" -m "Automatically generated tag from GitHub Actions"
+        git push origin "$TAG"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
   create-release:
     needs: [build]
@@ -56,31 +66,14 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-    
       - uses: actions/download-artifact@v4
-      - name: Create Tag
-        run: |
-            TAG=${{ needs.build.outputs.tag_name }}
-            git config user.name "GitHub Actions Bot"
-            git config user.email "bot@example.com"
-            git tag -a "$TAG" -m "Automatically generated tag from GitHub Actions"
-            git push origin "$TAG"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Attach artifacts to release
-        if: startsWith(github.ref, 'refs/tags/')
         run: |
           gh release upload ${{ needs.build.outputs.tag_name }} dist/*
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Release
-        if: startsWith(github.ref, 'refs/tags/')
         run: |
           gh release create --draft --title "${{ needs.build.outputs.tag_name }}"
             --notes "Automatic release created via GitHub Actions" \
