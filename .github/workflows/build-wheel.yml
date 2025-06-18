@@ -49,16 +49,6 @@ jobs:
         name: dist
         path: dist/*.whl
 
-    - name: Create Tag
-      run: |
-        TAG=${{ steps.generate_tag.outputs.TAG_NAME }}
-        git config user.name "GitHub Actions Bot"
-        git config user.email "bot@example.com"
-        git tag -a "$TAG" -m "Automatically generated tag from GitHub Actions"
-        git push origin "$TAG"
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 
   create-release:
     needs: [build]
@@ -66,6 +56,16 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Create Tag
+        run: |
+            TAG=${{ needs.build.outputs.tag_name }}
+            git config user.name "GitHub Actions Bot"
+            git config user.email "bot@example.com"
+            git tag -a "$TAG" -m "Automatically generated tag from GitHub Actions"
+            git push origin "$TAG"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: actions/download-artifact@v4
       - name: Attach artifacts to release
         run: |
