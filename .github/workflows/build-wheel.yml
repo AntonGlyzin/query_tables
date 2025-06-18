@@ -1,0 +1,51 @@
+name: Build Wheel Package
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      run: pip install setuptools wheel twine
+    - name: Build package
+      run: python setup.py bdist_wheel
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: dist/*.whl
+
+  create-release:
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v3
+      - name: Create Release
+        run: gh release create --draft --repo ${{ github.repository }} ${{ github.ref_name }} artifact/*
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-pypi:
+    needs: [build]
+    environment: pypi
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v3
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: artifact/
