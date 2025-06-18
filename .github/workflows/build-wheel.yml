@@ -68,6 +68,13 @@ jobs:
           git push origin "$TAG"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attach artifacts to release
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          gh release upload ${{ steps.generate_tag.outputs.TAG_NAME  }} ./dist/*.whl
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
@@ -78,13 +85,6 @@ jobs:
             ${{ steps.generate_tag.outputs.TAG_NAME }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Download Artifacts
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/*.whl
 
 
   publish-pypi:
