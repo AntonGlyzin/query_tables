@@ -51,6 +51,11 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
       - uses: actions/download-artifact@v4
       - name: Create Release
         run: gh release create "v${{ needs.build.outputs.version_app }}" dist/* --generate-notes --target ${{ github.sha }}
