@@ -1,12 +1,11 @@
 import os
 from setuptools import setup, find_packages
 
-fix = int(os.getenv('COUNT_COMMITS_FIX'))
-feat = int(os.getenv('COUNT_COMMITS_FEAT'))
+VERSION_APP = os.getenv('VERSION_APP')
 
 setup(
     name='query_tables',
-    version=f'1.{feat}.{fix}',
+    version=VERSION_APP,
     package_data={"": ["LICENSE", ]},
     packages=find_packages(),
     install_requires=[

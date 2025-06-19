@@ -12,25 +12,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
-      tag_name: ${{ steps.generate_tag.outputs.TAG_NAME }}
+      version_app: ${{ steps.version.outputs.VERSION_APP }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
 
-    - name: Generate New Tag
-      id: generate_tag
+    - name: Generate New version
+      id: version
       run: |
-        DATE=$(date +%Y.%m.%d)
-        COMMIT_COUNT=$(git rev-list HEAD | wc -l)
-        echo "::set-output name=TAG_NAME::${DATE}.${COMMIT_COUNT}"
-
-    - name: Count Commits with Prefix
-      id: count-commits
-      run: |
-        echo "COUNT_COMMITS_FIX=$(git log --oneline --grep="fix:" | wc -l)" >> $GITHUB_ENV
-        echo "COUNT_COMMITS_FEAT=$(git log --oneline --grep="feat:" | wc -l)" >> $GITHUB_ENV
+        FIX=$(git log --oneline --grep="fix:" | wc -l)
+        FEAT=$(git log --oneline --grep="feat:" | wc -l)
+        echo "VERSION_APP=1.${FEAT}.${FIX}" >> $GITHUB_ENV
+        echo "::set-output name=VERSION_APP::${VERSION_APP}"
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -58,7 +53,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
       - name: Create Release
-        run: gh release create --draft --repo ${{ github.repository }} ${{ github.ref_name }} dist/*
+        run: gh release create "v${{ needs.build.outputs.version_app }}" dist/*  \
+          --draft --generate-notes --target ${{ github.sha }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
