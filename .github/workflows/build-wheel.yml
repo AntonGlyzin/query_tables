@@ -25,7 +25,7 @@ jobs:
         FIX=$(git log --oneline --grep="fix:" | wc -l)
         FEAT=$(git log --oneline --grep="feat:" | wc -l)
         echo "VERSION_APP=1.${FEAT}.${FIX}" >> $GITHUB_ENV
-        echo "::set-output name=VERSION_APP::${VERSION_APP}"
+        echo "VERSION_APP=1.${FEAT}.${FIX}" >> $GITHUB_OUTPUT
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -53,8 +53,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
       - name: Create Release
-        run: gh release create "v${{ needs.build.outputs.version_app }}" dist/*  \
-          --draft --generate-notes --target ${{ github.sha }}
+        run: gh release create "v${{ needs.build.outputs.version_app }}" dist/* --generate-notes --target ${{ github.sha }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
