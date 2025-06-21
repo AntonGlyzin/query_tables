@@ -28,6 +28,7 @@ jobs:
         FEAT=$(git log --oneline --grep="feat:" | wc -l)
         echo "VERSION_APP=1.${FEAT}.${FIX}" >> $GITHUB_ENV
         echo "VERSION_APP=1.${FEAT}.${FIX}" >> $GITHUB_OUTPUT
+        echo "DESC_COMMIT=${DESC_COMMIT}" >> $GITHUB_OUTPUT
 
     - name: Set up Python
       uses: actions/setup-python@v4
