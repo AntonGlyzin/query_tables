@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version_app: ${{ steps.version.outputs.VERSION_APP }}
+      desc_commit: ${{ steps.version.outputs.DESC_COMMIT }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -22,6 +23,7 @@ jobs:
     - name: Generate New version
       id: version
       run: |
+        DESCRIPTION=$(git show --format="%B" --no-patch "${{ github.sha }}")
         FIX=$(git log --oneline --grep="fix:" | wc -l)
         FEAT=$(git log --oneline --grep="feat:" | wc -l)
         echo "VERSION_APP=1.${FEAT}.${FIX}" >> $GITHUB_ENV
@@ -58,7 +60,8 @@ jobs:
           
       - uses: actions/download-artifact@v4
       - name: Create Release
-        run: gh release create "v${{ needs.build.outputs.version_app }}" dist/* --generate-notes --target ${{ github.sha }}
+        run: gh release create "v${{ needs.build.outputs.version_app }}" dist/* \
+          --notes "v${{ needs.build.outputs.desc_commit }}" --target ${{ github.sha }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
