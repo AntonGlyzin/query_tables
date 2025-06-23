@@ -152,4 +152,4 @@ class TestDB(BaseTest):
 
 
 if __name__ == "__main__":
-    TestQuery.start()
+    TestDB.start()

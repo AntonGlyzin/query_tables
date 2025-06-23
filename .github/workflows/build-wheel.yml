@@ -2,7 +2,6 @@ name: Build Wheel Package
 
 
 on:
-  pull_request:
   push:
     branches:
       - main
@@ -23,12 +22,15 @@ jobs:
     - name: Generate New version
       id: version
       run: |
-        DESC_COMMIT=$(git show --format="%B" --no-patch "${{ github.sha }}")
+        export LANG=ru_RU.UTF-8
+        DESC_COMMIT=$(git show --format=%B --no-patch ${{ github.sha }})
         FIX=$(git log --oneline --grep="fix:" | wc -l)
         FEAT=$(git log --oneline --grep="feat:" | wc -l)
+        cat << EOF > $GITHUB_OUTPUT
+        VERSION_APP=${VERSION_APP}
+        DESC_COMMIT="${DESC_COMMIT}"
+        EOF
         echo "VERSION_APP=1.${FEAT}.${FIX}" >> $GITHUB_ENV
-        echo "VERSION_APP=1.${FEAT}.${FIX}" >> $GITHUB_OUTPUT
-        echo "DESC_COMMIT=${DESC_COMMIT}" >> $GITHUB_OUTPUT
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -62,6 +64,7 @@ jobs:
       - uses: actions/download-artifact@v4
       - name: Create Release
         run: |
+          export LANG=ru_RU.UTF-8
           gh release create "v${{ needs.build.outputs.version_app }}" dist/* \
           --notes "${{ needs.build.outputs.desc_commit }}" --target ${{ github.sha }}
         env:
