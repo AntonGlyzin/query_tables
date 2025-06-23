@@ -61,6 +61,7 @@ jobs:
           export LANG=ru_RU.UTF-8
           DESC_COMMIT=$(git show --format=%B --no-patch ${{ github.sha }})
           gh release create "v${{ needs.build.outputs.version_app }}" dist/* \
+          --title "v${{ needs.build.outputs.version_app }}" \
           --notes "${DESC_COMMIT}" --target ${{ github.sha }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
