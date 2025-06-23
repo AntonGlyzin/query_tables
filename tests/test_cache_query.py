@@ -1,10 +1,10 @@
 from settings import logger, BaseTest
-from threading import Thread
+from threading import Thread, RLock
 import time
-
 from query_tables.cache.cache_query import CacheQuery, SyncLockDecorator
-
 from query_tables.exceptions import NoMatchFieldInCache
+
+rlock = RLock()
 
 
 class TestCacheQuery(BaseTest):
@@ -47,6 +47,7 @@ class TestCacheQuery(BaseTest):
         logger.info('----Удаление закешированную запись по sql запросу.')
         del cache[query3]
         self.assertFalse(cache[query3].get())
+        logger.info("-------------------------------------------------------")
         
     def test_case_2(self):
         logger.info('2. Попытка удалить кеш из потока 2 при попытки чтения из потока 1.')
@@ -72,8 +73,8 @@ class TestCacheQuery(BaseTest):
         def delete(s):
             q.put('Удаление отработано.')
         
-        cache._get_item = SyncLockDecorator(read)
-        cache.delete_cache_table = SyncLockDecorator(delete)
+        cache._getitem_ = SyncLockDecorator(read, rlock)
+        cache.delete_cache_table = SyncLockDecorator(delete, rlock)
         th1 = Thread(target=lambda : cache[query2])
         th1.start()
         time.sleep(1)
@@ -83,6 +84,7 @@ class TestCacheQuery(BaseTest):
         self.assertEqual(q.get(timeout=4), 'Значение прочитано.')
         self.assertEqual(q.get(timeout=4), 'Удаление отработано.')
         logger.info('----Порядок выполнений операций не нарушен.')
+        logger.info("-------------------------------------------------------")
         
     def test_case_3(self):
         logger.info('3. Асинхроность.')
@@ -112,6 +114,7 @@ class TestCacheQuery(BaseTest):
             self.assertFalse(cache[query2].get())
             
         asyncio.run(main())
+        logger.info("-------------------------------------------------------")
         
     def test_case_4(self):
         logger.info('4. Изменение единичной записи в кеше по ссылки.')
@@ -152,6 +155,7 @@ class TestCacheQuery(BaseTest):
                 cache[query1].get()[_index]['person.id'] = 4
                 break
         self.assertDictEqual(cache[query1].get()[index], { 'person.id': 4, 'person.name': 'Tony 3' })
+        logger.info("-------------------------------------------------------")
         
     def test_case_5(self):
         logger.info('5. Получение и изменение данных в кеше по фильтрации.')
@@ -187,6 +191,7 @@ class TestCacheQuery(BaseTest):
             
         with self.assertRaises(NoMatchFieldInCache):
             cache[query1].insert({ 'person.id': 5 })
+        logger.info("-------------------------------------------------------")
 
 
 if __name__ == "__main__":

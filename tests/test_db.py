@@ -8,7 +8,7 @@ from query_tables.db import (
     BaseDBQuery, BaseAsyncDBQuery
 )
 
-class TestQuery(BaseTest):
+class TestDB(BaseTest):
     
     @classmethod
     def filename_test(cls):
@@ -23,10 +23,33 @@ class TestQuery(BaseTest):
         cls.sqlite_async = AsyncSQLiteQuery(tests_dir / 'test_db.db')
         
         cls.postgres = PostgresQuery(
-            DBConfigPg('localhost', 'test', 'postgres', 'postgres')
+            DBConfigPg('localhost', 'query_tables', 'postgres', 'postgres')
         )
+        with cls.postgres as db_query:
+            db_query.execute(
+                """
+                    CREATE TABLE IF NOT EXISTS public.address (
+                        id SERIAL PRIMARY KEY,
+                        street VARCHAR(255) NOT NULL,
+                        building INTEGER NOT NULL
+                    );
+                """
+            )
+        with cls.postgres as db_query:
+            db_query.execute('delete from public.address')
+        with cls.postgres as db_query:
+            db_query.execute(
+                """
+                    INSERT INTO public.address (id,street,building) VALUES
+                        (1,'Пушкина',10),
+                        (2,'Наумова',33),
+                        (3,'Гринвич',12),
+                        (4,'Приморская',8),
+                        (5,'Бэйкер',11)
+                """
+            )
         cls.postgres_async = AsyncPostgresQuery(
-            DBConfigPg('localhost', 'test', 'postgres', 'postgres')
+            DBConfigPg('localhost', 'query_tables', 'postgres', 'postgres')
         )
 
     @classmethod
@@ -113,15 +136,19 @@ class TestQuery(BaseTest):
     def test_case_1(self):
         logger.info('1. Проверка для SQLiteQuery.')
         self._db_query(self.sqlite)
+        logger.info("-------------------------------------------------------")
         
         logger.info('2. Проверка для AsyncSQLiteQuery.')
         asyncio.run(self._db_query_async(self.sqlite_async))
+        logger.info("-------------------------------------------------------")
         
         logger.info('3. Проверка для PostgresQuery.')
         self._db_query(self.postgres)
+        logger.info("-------------------------------------------------------")
         
         logger.info('4. Проверка для AsyncPostgresQuery.')
         asyncio.run(self._db_query_async(self.postgres_async))
+        logger.info("-------------------------------------------------------")
 
 
 if __name__ == "__main__":

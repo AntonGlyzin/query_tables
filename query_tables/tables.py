@@ -4,10 +4,10 @@ from query_tables.exceptions import (
     NotTable, ExceptionQueryTable, 
     ErrorLoadingStructTables
 )
-from query_tables.query import Query, BaseQuery
-from query_tables.cache import CacheQuery, BaseCache
+from query_tables.query import Query
+from query_tables.cache import CacheQuery, BaseCache, TypeCache, AsyncBaseCache
 from query_tables.db import BaseDBQuery, BaseAsyncDBQuery, DBTypes
-from query_tables.query_table import QueryTable, AsyncQueryTable
+from query_tables.query_table import QueryTable, AsyncQueryTable, AsyncRemoteQueryTable
 
 
 
@@ -17,39 +17,29 @@ class BaseTables(object):
     """    
     def __init__(
         self, db: Union[BaseDBQuery, BaseAsyncDBQuery],
+        cls_query_table: Type[Union[QueryTable, AsyncQueryTable]],
+        cache: BaseCache,
         prefix_table: str = '', 
         tables: Optional[List[str]] = None,
-        table_schema:str = 'public',
-        cache_ttl: int = 0,
-        non_expired: bool = False,
-        cache_maxsize: int = 1024,
-        cls_cache: Optional[Type[BaseCache]] = None,
-        cls_query: Optional[Type[BaseQuery]] = None
+        table_schema: str = 'public'
     ):
         """
         Args:
             db (Union[BaseDBQuery, BaseAsyncDBQuery]): Объект для доступа к БД.
+            cls_query_table (Type[Union[QueryTable, AsyncQueryTable]]): Класс запросов.
+            cache (BaseCache): Кеш.
             prefix_table (str, optional): Префикс таблиц которые нужно загрузить. По умолчанию - пустая строка.
                 Загружает таблцы по первой части названия, к примеру: common%. Если пустая строка, загрузить все таблицы из схемы.
             tables (Optional[List[str]], optional): Список подключаемых таблиц. По умолчанию - нет.
             table_schema (str, optional): Схема данных. По умолчанию - 'public'.
-            cache_ttl (int, optional): Время кеширования данных. По умолчанию 0 секунд - кеширование отключено.
-            non_expired (bool, optional): Вечный кеш без времени истечения. По умолчанию - выключен.
-                Если включить, будет использоваться вне зависимости от cache_ttl.
-                При non_expired=False и cache_ttl=0 кеш кеш отключен.
-            cache_maxsize (int, optional): Размер элементов в кеше.
-            cls_cache (Type[BaseCache], optional): Пользовательская реализация кеша.
-            cls_query (Type[BaseQuery], optional): Пользовательская реализация запросов.
         """
         self._db: Union[BaseDBQuery, BaseAsyncDBQuery] = db
+        self._cls_query_table: Type[Union[QueryTable, AsyncQueryTable]] = cls_query_table
+        self._cache: BaseCache = cache
         self._prefix_table: str = prefix_table
         self._tables: Optional[List[str]] = tables
         self._table_schema: str = table_schema
         self._tables_struct: dict[str, list] = {}
-        self._cls_cache: Type[BaseCache] = cls_cache or CacheQuery
-        self._cls_query: Type[BaseQuery] = cls_query or Query
-        self._cache: BaseCache = None
-        self._cls_query_table: Type[Union[QueryTable, AsyncQueryTable]] = QueryTable
         
     @property
     def _pg_query_struct(self):
@@ -88,7 +78,7 @@ class BaseTables(object):
         try:
             return self._cls_query_table(
                 self._db, table_name, fields, 
-                self._cache, self._cls_query
+                self._cache, Query
             )
         except Exception as e:
             raise ExceptionQueryTable(table_name, e)
@@ -110,16 +100,27 @@ class Tables(BaseTables):
         cache_ttl: int = 0,
         non_expired: bool = False,
         cache_maxsize: int = 1024,
-        cls_cache: Optional[Type[BaseCache]] = None,
-        cls_query: Optional[Type[BaseQuery]] = None
+        cache: Optional[BaseCache] = None
     ):
+        """
+        Args:
+            db (Union[BaseDBQuery, BaseAsyncDBQuery]): Объект для доступа к БД.
+            prefix_table (str, optional): Префикс таблиц которые нужно загрузить. По умолчанию - пустая строка.
+                Загружает таблцы по первой части названия, к примеру: common%. Если пустая строка, загрузить все таблицы из схемы.
+            tables (Optional[List[str]], optional): Список подключаемых таблиц. По умолчанию - нет.
+            table_schema (str, optional): Схема данных. По умолчанию - 'public'.
+            cache_ttl (int, optional): Время кеширования данных. По умолчанию 0 секунд - кеширование отключено.
+            non_expired (bool, optional): Вечный кеш без времени истечения. По умолчанию - выключен.
+                Если включить, будет использоваться вне зависимости от cache_ttl.
+                При non_expired=False и cache_ttl=0 - кеш отключен.
+            cache_maxsize (int, optional): Размер элементов в кеше.
+            cache (BaseCache, optional): Пользовательская реализация кеша.
+        """
+        _cache = cache or CacheQuery(cache_ttl, cache_maxsize, False, non_expired)
         super().__init__(
-            db, prefix_table, tables,
-            table_schema, cache_ttl, non_expired,
-            cache_maxsize, cls_cache, cls_query
+            db, QueryTable, _cache, 
+            prefix_table, tables, table_schema
         )
-        self._cache = self._cls_cache(cache_ttl, cache_maxsize, False, non_expired)
-        self._cls_query_table = QueryTable
         if DBTypes.postgres == db.get_type():
             self._fill_tables_pg_struct()
         elif DBTypes.sqlite == db.get_type():
@@ -170,22 +171,42 @@ class TablesAsync(BaseTables):
         cache_ttl: int = 0,
         non_expired: bool = False,
         cache_maxsize: int = 1024,
-        cls_cache: Optional[Type[BaseCache]] = None,
-        cls_query: Optional[Type[BaseQuery]] = None
+        cache: Optional[Union[BaseCache, AsyncBaseCache]] = None
     ):
+        """
+        Args:
+            db (Union[BaseDBQuery, BaseAsyncDBQuery]): Объект для доступа к БД.
+            prefix_table (str, optional): Префикс таблиц которые нужно загрузить. По умолчанию - пустая строка.
+                Загружает таблцы по первой части названия, к примеру: common%. Если пустая строка, загрузить все таблицы из схемы.
+            tables (Optional[List[str]], optional): Список подключаемых таблиц. По умолчанию - нет.
+            table_schema (str, optional): Схема данных. По умолчанию - 'public'.
+            cache_ttl (int, optional): Время кеширования данных. По умолчанию 0 секунд - кеширование отключено.
+            non_expired (bool, optional): Вечный кеш без времени истечения. По умолчанию - выключен.
+                Если включить, будет использоваться вне зависимости от cache_ttl.
+                При non_expired=False и cache_ttl=0 - кеш отключен.
+            cache_maxsize (int, optional): Размер элементов в кеше.
+            cache (BaseCache, optional): Пользовательская реализация кеша.
+        """
+        _cache = cache or CacheQuery(cache_ttl, cache_maxsize, True, non_expired)
+        cls_query_table = AsyncQueryTable
+        if TypeCache.remote == _cache.type_cache:
+            cls_query_table = AsyncRemoteQueryTable
+            setattr(self, 'clear_cache', self._clear_cache)
         super().__init__(
-            db, prefix_table, tables,
-            table_schema, cache_ttl, non_expired,
-            cache_maxsize, cls_cache, cls_query
+            db, cls_query_table, _cache, 
+            prefix_table, tables, table_schema
         )
-        self._cache = self._cls_cache(cache_ttl, cache_maxsize, True, non_expired)
-        self._cls_query_table = AsyncQueryTable
-        
     async def init(self):
         if DBTypes.postgres == self._db.get_type():
             await self._fill_tables_pg_struct()
         elif DBTypes.sqlite == self._db.get_type():
             await self._fill_tables_sqlite_struct()
+            
+    async def _clear_cache(self):
+        """
+            Вызов очищение всего кеша.
+        """        
+        await self._cache.clear()
     
     async def _fill_tables_pg_struct(self):
         """

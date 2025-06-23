@@ -1,16 +1,17 @@
 
 # Запросы в объектном стиле без моделей с поддержкой кеша данных.
 
-Идея библиотеки заключается, чтобы освободить разработчика от написания моделей. Если вам нравятся запросы ORM от django или sqlalchemy, но при этом вам не хочется создваться модели, то данная библиотека может вам понравиться. Также в ней присутствует функция кеширования данных, что может ускорить выдачу результатов. На данный момент кеширование предусмотренно на уровне процесса. Библиотека расчитана на работу в синхронном и асинхронном режиме.
+Идея библиотеки заключается, чтобы освободить разработчика от написания моделей. Если вам нравятся запросы ORM от django или sqlalchemy, но при этом вам не хочется создваться модели, то данная библиотека может вам понравиться. Также в ней присутствует функция кеширования данных, что может ускорить выдачу результатов. На данный момент кеширование предусмотренно либо на уровне процесса, либо в редисе. Библиотека расчитана на работу в синхронном и асинхронном режиме.
 
 1. [Работа с таблицами](#работа-с-таблицами)
 2. [Запросы к таблицам](#запросы-к-таблицам)
 3. [Работа с кешем](#работа-с-кешем)
-4. [Работа в асинхронном режиме](#работа-в-асинхронном-режиме)
+4. [Работа с БД в асинхронном режиме](#работа-с-бд-в-асинхронном-режиме)
+5. [Асинхронный режим с удаленным кешем](#асинхронный-режим-с-удаленным-кешем)
 
 ## Работа с таблицами.
 
-Представим у нас есть 4 таблицы:
+Работа библиотеки будет продемонстрирована на этих таблица:
 
 Таблица `address`
 | Поле  |  Тип | Описание  |
@@ -48,9 +49,9 @@
 |   ref_address| INTEGER  |  Ссылка на адрес |
 | age  |  INTEGER | Возраст  |
 
-На данный момент библиотека поддерживает работу с двумя БД: `sqlite` и `postgres`.
+Библиотека поддерживает работу с двумя БД: `sqlite` и `postgres`.
 
-Начать работу с `sqlite`. При создание экземпляра `Tables` будут получен доступ ко всем таблицам.
+Работа с `sqlite`. 
 ```python
 from query_tables import Tables
 from query_tables.db import SQLiteQuery
@@ -61,13 +62,18 @@ table = Tables(sqlite) # кеш отключен по умолчанию
 table = Tables(sqlite, non_expired=True) # включен вечный кеш
 # или так
 table = Tables(sqlite, cache_ttl=300) # включен временный кеш на 300 сек.
+# или так
+connect = RedisConnect() # параметры соединения с редисом
+redis_cache = RedisCache(connect)
+tables = Tables(sqlite, cache=redis_cache)# кеш redis
 ```
+При создание экземпляра `Tables` будут получен доступ ко всем таблицам.
 
-
-Начать работу с `postgres` в многопоточном режиме. При создание экземпляра `Tables` будут получен доступ к таблицам из схемы `public`. При желание вы можете передать другую схему.
+Работа с `postgres` в многопоточном режиме. 
 ```python
 from query_tables import Tables
 from query_tables.db import DBConfigPg, PostgresQuery
+from query_tables.cache import RedisCache, RedisConnect
 
 postgres = PostgresQuery(
     DBConfigPg('localhost', 'test', 'postgres', 'postgres')
@@ -77,8 +83,13 @@ table = Tables(postgres) # кеш отключен по умолчанию
 table = Tables(postgres, non_expired=True) # включен вечный кеш
 # или так
 table = Tables(postgres, cache_ttl=300) # включен временный кеш на 300 сек.
+# или так
+connect = RedisConnect() # параметры соединения с редисом
+redis_cache = RedisCache(connect)
+tables = Tables(postgres, cache=redis_cache)# кеш redis
 
 ```
+При создание экземпляра `Tables` будут получен доступ к таблицам из схемы `public`. При желание вы можете передать другую схему.
 
 Если нужен доступ к ограниченному числу таблиц из БД `postgres`:
 ```python
@@ -89,14 +100,29 @@ table = Tables(postgres, tables=['operators', 'opright'], non_expired=True)
 - `db`: Объект для доступа к БД.
 - `prefix_table`: Префикс таблиц которые нужно загрузить. По умолчанию - пустая строка.
 - `tables`: Список подключаемых таблиц. По умолчанию - нет.
-- `table_schema`: Схема данных. По умолчанию - 'public'.
+- `table_schema`: Схема данных. По умолчанию - `public`.
 - `cache_ttl`: Время кеширования данных. По умолчанию 0 секунд - кеширование отключено.
 - `non_expired`: Вечный кеш без времени истечения. По умолчанию - выключен.
 - `cache_maxsize`: Размер элементов в кеше.
-- `cls_cache`: Пользовательская реализация кеша.
-- `cls_query`: Пользовательская реализация запросов.
+- `cache`: Пользовательская реализация кеша.
 
-Когда у вас есть экземпляр `Tables`, то доступ к таблицам получается так:
+Параметры `RedisConnect`:
+- `host`: Хост редиса. По умолчанию - `127.0.0.1`
+- `user`: Пользователь. По умолчанию - нет.
+- `password`: Пароль. По умолчанию - нет.
+- `port`: Порт. По умолчанию - 6379.
+- `db`: БД. По умолчанию - 0.
+
+Параметры `DBConfigPg`:
+- `host`: Хост БД. По умолчанию - `127.0.0.1`
+- `database`: Название БД. По умолчанию - нет. 
+- `user`: Пользователь. По умолчанию - нет.
+- `password`: Пароль. По умолчанию - нет.
+- `port`: Порт. По умолчанию - 5432
+- `minconn`: Минимальное количество подключений в пуле - 1
+- `maxconn`: Максимальное количество подключений в пуле - 10
+
+Когда у вас есть экземпляр `Tables`, доступ к таблицам можно получить так:
 ```python
 table['person']
 ```
@@ -127,7 +153,8 @@ print(res)
 res = table['person'].filter(age__between=(30, 31)).order_by(id='asc').get()
 print(res)
 """
-[{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+[{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31}, 
+{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
 """
 
 res = table['person'].filter(age__gte=35).get()
@@ -155,7 +182,8 @@ res = table['person'].join(
 ).filter(age__between=(25, 31)).get()
 print(res)
 """
-[{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}]
+[{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, 
+{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}]
 """
 
 res = table['person'].filter(id=2).join(
@@ -191,12 +219,20 @@ print(res)
 | `isnotnull` | `is not null` |  `name__isnotnull=None`|
 | `notequ` | `!=` |  `age__notequ=5`|
 
+
+Доступные методы для конструирования запроса SQL из таблицы `table['person']`, а также из`Join` и `LeftJoin`. Данные методы не взаимодействют с БД, они только помогают собрать запрос:
+- `select`: Для выбора выводимых полей.
+- `join`: Объединение таблиц.
+- `filter`: Правила фильтрации.
+- `order_by`: Сортировка для полей.
+- `limit`: Ограничения по количеству.
+
 Для связывания таблиц используется две обертки:
 ```python
 from query_tables.query import Join, LeftJoin
 ```
-- `Join` - если вы уверены, что запись в join таблице должна быть, а если нет, то не выводить записи.
-- `LeftJoin` - если нет записей в привязанной таблице, нужно вывести те записи, которые есть во внешней таблице.
+- `Join`: Если вам нужно выводит записи, только если они есть в join таблице.
+- `LeftJoin`: Еесли вам нужно вывести записи, даже если их нет в join таблице.
 
 Параметры для `Join`, `LeftJoin`:
 - `join_table`: Таблица для join к другой таблице.
@@ -239,20 +275,20 @@ res = query2.get()
 res = query3.get()
 ```
 
-Но что если вы измените данные в таблице? Если это сделать вручную из БД, то данные у нас остануться не актуальными. Изменение данных в БД нужно проводить через экземпляр `Tables`.
+Но что если вы измените данные в таблице? Если это сделать вручную из БД, то данные у нас остануться не актуальными. Изменение данных в БД нужно проводить через методы изменения данных по выбранной таблице.
 
 ```python
+# вставка записей в БД
 table['address'].insert([dict(
     street='123',
     building=777
 )])
-# или так
+# обновление записей в БД
 table['address'].filter(id=1).update(building=11)
-# или так
+# удаление записей из БД
 table['address'].filter(id=1).delete()
 ```
-В этом случае запросы `query1` и `query2` будут очищены, так как они используют таблицу, в которой произошли изменения.
-
+В этом случае кеш запросов `query1` и `query2` будут очищены, так как они используют таблицу, в которой произошли изменения.
 Также заметьте, что для вставки записей в БД мы используем список словарей. Это значит, что можно вставлять больше одной записи в БД за раз.
 
 Получаем снова данные из БД.
@@ -274,25 +310,30 @@ res = query2.get()
 
 ## Работа с кешем.
 
-Не пытайтесь получить доступ к кешу, если он у вас выключен. Это приведет к ошибке.
+> Не пытайтесь получить доступ к кешу, если он у вас выключен. Это приведет к ошибке.
 
 Давайте снова выполним запрос.
 ```python
+# сохраняем запрос
 query = table['person'].join(
     Join(table['address'], 'id', 'ref_address')
 ).filter(age__between=(30, 33), name__like='Anton%%').order_by(id='desc')
-query.get() # получаем данные, но не сохраняем в переменную
-res = query.cache.get() # берем их из кеша
+query.get() # получаем данные по запросу
+res = query.cache.get() # потом можно взять из кеша
+# либо
+res = query.get() # если кеш включен
 print(res)
 """ 
-[{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
+[{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, 
+{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, 
+{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
 """
 ```
 
-Теперь ваши данные находятся в кеше. Но что если вам нужно изменить эти данные?
+Теперь ваши данные находятся в кеше. Но что если вам нужно получить или изменить эти данные?
 
 ```python
-# Получить список данных по выборке.
+# Получить список данных по выборке. 
 # В фильтре доступно только строгое равенство полей.
 res = query.cache.filter({'person.id': 1}).get()
 # Обновление данных по условию.
@@ -334,12 +375,14 @@ query_9.delete_cache_query()
 table.clear_cache()
 ```
 
-## Работа в асинхронном режиме.
+## Работа с БД в асинхронном режиме.
 
-Принцип доступка к данным из кеша(по умолчанию) не изменился. Также без изменений остался конструктор запросов. Но запросы к БД будут выглядить по другому, к ним нужно добавить await.
-Создаем экземпляр `TablesAsync`
+Конструктор запросов остался без изменений. Но запросы к БД будут выглядить по другому, к ним нужно добавить `await`.
+
+Создаем экземпляр `TablesAsync`.
 ```python
 from query_tables import TablesAsync
+from query_tables.cache import RedisConnect, AsyncRedisCache
 from query_tables.db import (
     AsyncSQLiteQuery, 
     DBConfigPg, 
@@ -354,15 +397,18 @@ postgres_async = AsyncPostgresQuery(
 
 table = TablesAsync(sqlite_async, non_expired=True)
 await table.init()
-
+# или так
 table = TablesAsync(postgres_async, non_expired=True)
+await table.init()
+# или так
+redis = AsyncRedisCache(RedisConnect())
+table = TablesAsync(postgres_async, cache=redis)
 await table.init()
 
 ```
 
 Получаем данные и проводим изменения в БД.
 ```python
-
 res1 = await table['person'].filter(id=2).get()
 res2 = await table['person'].filter(id=4).join(
     Join(table['employees'], 'ref_person', 'id')
@@ -383,5 +429,71 @@ await table['person'].insert([dict(
 await table['person'].filter(id=9).update(login='ant2', age=32)
 await table['person'].filter(id=9).delete()
 ```
+
+## Асинхронный режим с удаленным кешем.
+Принцип доступка к данным из локального кеша, который находится в памяти процесса, не изменился. Но получение доступка к удаленному кешу был изменен.
+
+Создаем экземпляр `TablesAsync`.
+```python
+from query_tables import TablesAsync
+from query_tables.cache import RedisConnect, AsyncRedisCache
+from query_tables.db import (
+    DBConfigPg, 
+    AsyncPostgresQuery
+)
+
+postgres_async = AsyncPostgresQuery(
+    DBConfigPg('localhost', 'test', 'postgres', 'postgres')
+)
+
+redis = AsyncRedisCache(RedisConnect())
+table = TablesAsync(postgres_async, cache=redis)
+await table.init()
+
+```
+
+Запросы на получения и изменения данных в кеше.
+```python
+# сохраняем запрос
+query = table['person'].join(
+    Join(table['address'], 'id', 'ref_address')
+).filter(age__between=(30, 33), name__like='Anton%%').order_by(id='desc')
+await query.get() # получаем данные по запросу из БД
+res = await query.cache.get() # потом можно взять из кеша
+# либо
+res = await query.get() # если кеш включен
+print(res)
+""" 
+[{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, 
+{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, 
+{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
+"""
+
+# обновляем запись в кеше по id
+await query.cache.filter({'person.id': 1}).update({'person.name': 'Tony 1', 'person.age': 32})
+
+# вставка новой записи в кеш
+await query.cache.insert({
+	'person.id': 6, 
+	'person.login': 'qqq', 
+	'person.name': 'Anton 6', 
+	'person.ref_address': 0, 
+	'person.age': 0,
+	'address.id': 6,
+	'address.street': 'ytutyu',
+	'address.building': 567
+})
+
+# удаление этой записи из кеша
+await query.cache.filter({'person.id': 6}).delete()
+
+# удаление данных по запросу из кеша
+await query.delete_cache_query()
+
+# очищение кеша
+await table.clear_cache()
+```
+
+
 
 [![Python Software Foundation](https://raw.githubusercontent.com/psf/requests/main/ext/psf.png)](https://www.python.org/psf)

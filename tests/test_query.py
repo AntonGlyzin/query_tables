@@ -102,6 +102,7 @@ class TestQuery(BaseTest):
         logger.debug(query.get())
         res = self.cursor.execute(query.get()).fetchall()
         self.assertEqual(len(res), 1)
+        logger.info("-------------------------------------------------------")
         
     def test_case_2(self):
         logger.info('2. Запросы на изменения.')
@@ -150,6 +151,7 @@ class TestQuery(BaseTest):
         logger.debug(query)
         res = self.cursor.execute(query)
         self.assertEqual(res.rowcount , 1)
+        logger.info("-------------------------------------------------------")
         
 if __name__ == "__main__":
     TestQuery.start()
