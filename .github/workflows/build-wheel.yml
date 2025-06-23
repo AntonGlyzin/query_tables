@@ -23,7 +23,7 @@ jobs:
       id: version
       run: |
         export LANG=ru_RU.UTF-8
-        DESC_COMMIT=$(git show --format=%B --no-patch ${{ github.sha }})
+        DESC_COMMIT=$(git log -1 --pretty=format:"%B" --no-patch ${{ github.sha }})
         FIX=$(git log --oneline --grep="fix:" | wc -l)
         FEAT=$(git log --oneline --grep="feat:" | wc -l)
         cat << EOF > $GITHUB_OUTPUT
