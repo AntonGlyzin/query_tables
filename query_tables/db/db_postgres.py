@@ -1,14 +1,18 @@
-from typing import List, Any, Dict, Optional
+from typing import List, Any, Dict
+import logging
 from psycopg2.pool import ThreadedConnectionPool
+import time
 from dataclasses import dataclass
 import asyncpg
+import asyncio
 from query_tables.db import BasePostgreDBQuery, BaseAsyncPostgreDBQuery
-from query_tables.exceptions import ErrorConnectDB, ErrorExecuteQueryDB
+from query_tables.exceptions import ErrorConnectDB
 
+logger = logging.getLogger(__name__)
 
 @dataclass
 class DBConfigPg:
-    host: str = ''
+    host: str = '127.0.0.1'
     database: str = ''
     user: str = ''
     password: str = ''
@@ -33,19 +37,26 @@ class PostgresQuery(BasePostgreDBQuery):
         self._pool = None
         self._conn = None
         self._cursor = None
-        self.create_pool()
+        while True:
+            res = self.create_pool()
+            if res:
+                break
+            time.sleep(3)
         
     def create_pool(self):
         """
             Создаем пул соединений.
         """        
         try:
+            self.close_pool()
             self._pool = ThreadedConnectionPool(
                 self._config.minconn, self._config.maxconn,
                 **self._config.get_conn()
             )
+            return True
         except Exception as e:
-            raise ErrorConnectDB(e)
+            logger.error(f"Ошибка при подключении к базе данных: {e}")
+            return False
         
     def close_pool(self):
         """
@@ -83,8 +94,7 @@ class PostgresQuery(BasePostgreDBQuery):
             self._cursor.execute(query)
             self._conn.commit()
         except Exception as e:
-            self._conn.rollback()
-            raise ErrorExecuteQueryDB(e)
+            logger.error(f"Ошибка при выполнении SQL-запроса: {e}")
         return self
 
     def fetchall(self) -> List[Any]:
@@ -92,8 +102,11 @@ class PostgresQuery(BasePostgreDBQuery):
 
         Returns:
             List: Результирующий список.
-        """     
-        return self._cursor.fetchall()
+        """
+        try:
+            return self._cursor.fetchall()
+        except Exception as e:
+            logger.error(f"Ошибка при получение результата из запроса: {e}")
 
 
 class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
@@ -104,13 +117,27 @@ class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
         self._conn = None
         self._cursor = None
         self._res = None
+        
+    async def _create_pool(self):
+        """ Создаем пул соединений к БД. """
+        try:
+            self._pool = await asyncpg.create_pool(
+                **self._config.get_conn(), 
+                min_size=self._config.minconn, 
+                max_size=self._config.maxconn
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Ошибка при подключении к базе данных: {e}")
+            return False
 
     async def create_pool(self):
         """ Создаем пул соединений к БД. """
-        try:
-            self._pool = await asyncpg.create_pool(**self._config.get_conn())
-        except Exception as e:
-            raise ErrorConnectDB(e)
+        while True:
+            res = await self._create_pool()
+            if res:
+                break
+            await asyncio.sleep(3)
 
     async def close_pool(self):
         """ Закрываем весь пул соединений. """
@@ -125,7 +152,7 @@ class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
                 await self.create_pool()
             self._conn = await self._pool.acquire()
         except Exception as e:
-            raise ErrorConnectDB(e)
+            logger.error(f"Ошибка при открытие соединения с курсором к БД: {e}")
         return self
 
     async def close(self):
@@ -143,7 +170,7 @@ class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
         try:
             self._res = await self._conn.fetch(query)
         except Exception as e:
-            raise ErrorExecuteQueryDB(e)
+            logger.error(f"Ошибка при выполнении SQL-запроса: {e}")
         return self
 
     async def fetchall(self) -> List[dict]:

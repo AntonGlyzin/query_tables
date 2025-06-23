@@ -1,7 +1,12 @@
 import os
 from setuptools import setup, find_packages
 
+# Для изменения версии программы 
+# сообщение коммита должно содержать: "feat:" / "fix:".
 VERSION_APP = os.getenv('VERSION_APP')
+
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
 
 setup(
     name='query_tables',
@@ -12,17 +17,17 @@ setup(
         'cachetools<=6.0.0',
         'aiosqlite<=0.21.0',
         'psycopg2<=2.9.10',
-        'asyncpg<=0.30.0'
+        'asyncpg<=0.30.0',
+        'redis<=6.2.0'
     ],
     python_requires=">=3.9",
     author='Антон Глызин',
     author_email='tosha.glyzin@mail.ru',
-    url='https://pypi.org/project/query-tables',
     description='Запросы в объектном стиле без моделей с поддержкой кеша данных.',
-    long_description=open('README.md', encoding="utf-8").read(),
+    long_description=long_description,
     long_description_content_type="text/markdown",
-    license='MIT License',
-    keywords='orm sql postgres sqlite cache python',
+    license='MIT',
+    keywords='asyncio orm sql postgres sqlite cache redis python',
     classifiers=[
         'Intended Audience :: Developers',
         "Programming Language :: Python :: 3.9",
@@ -33,7 +38,7 @@ setup(
         "Topic :: Software Development :: Libraries",
     ],
     project_urls={
-        "Documentation": "https://pypi.org/project/query-tables",
-        "Source": "https://github.com/AntonGlyzin/query_tables",
+        "Releases": "https://github.com/AntonGlyzin/query_tables/releases",
+        "Github": "https://github.com/AntonGlyzin/query_tables"
     },
 )

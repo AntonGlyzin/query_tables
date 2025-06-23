@@ -15,8 +15,8 @@ class NotTable(ExceptionTable):
     def __init__(self, table_name: str):
         message = f"Таблица '{table_name}' не найдена."
         super().__init__(message)
-        
-        
+
+
 class ExceptionQueryTable(ExceptionTable):
     """
         Ошибка в экземпляре QueryTable.
@@ -60,8 +60,8 @@ class NoMatchFieldInCache(ExceptionTable):
     def __init__(self):
         message = "Попытка обращения к несуществующим полям в кеше."
         super().__init__(message)
-        
-        
+
+
 class ErrorExecuteJoinQuery(ExceptionTable):
     """
         Ошибка изменение таблицы с JOIN.
@@ -69,8 +69,8 @@ class ErrorExecuteJoinQuery(ExceptionTable):
     def __init__(self, method):
         message = f"Ошибка SQL в методе '{method}'. Нельзя изменять таблицу c JOIN таблицами."
         super().__init__(message)
-        
-        
+
+
 class ErrorAliasTableJoinQuery(ExceptionTable):
     """
         Ошибка псевдонима у JOIN таблиц.
@@ -87,27 +87,39 @@ class ErrorDeleteCacheJoin(ExceptionTable):
     def __init__(self, table):
         message = f"Ошибка очишения кеша по таблице '{table}'. Нельзя очишать кеш таблицы при JOIN запросах."
         super().__init__(message)
-        
-        
+
+
 class DesabledCache(ExceptionTable):
+    """
+        Доступ до кеша не возможен.
+    """  
     def __init__(self):
         message = "Доступ до кеша не возможен. Кеш отключен."
         super().__init__(message)
-        
-        
+
+
 class ErrorLoadingStructTables(ExceptionTable):
+    """
+        Ошибка при загрузки структуры таблиц.
+    """  
     def __init__(self, error):
         message = f"Ошибка при загрузки структуры таблиц: {error}"
         super().__init__(message)
-        
-        
+
+
 class ErrorConnectDB(ExceptionTable):
+    """
+        Ошибка соединения с базой данных.
+    """  
     def __init__(self, error):
         message = f"Ошибка соединения с базой данных: {error}"
         super().__init__(message)
-        
-        
+
+
 class ErrorExecuteQueryDB(ExceptionTable):
+    """
+        Ошибка при выполнение запроса.
+    """  
     def __init__(self, error):
         message = f"Ошибка при выполнение запроса. {error}"
         super().__init__(message)

@@ -5,7 +5,7 @@ import unittest
 
 path = Path(__file__)
 tests_dir = path.parent
-sys.path.insert(0, str(path.parent.parent.parent))
+sys.path.insert(0, str(tests_dir.parent))
 
 
 logger = logging.getLogger()
@@ -42,9 +42,13 @@ class BaseTest(unittest.TestCase):
     
     @classmethod
     def setUpClass(cls):
-        logger.info('=========================================')
+        logger.info('======================================================================')
         logger.info(f'Выполнение тестов для {cls.__name__}.')
-        logger.info('=========================================')
+        logger.info('======================================================================')
+        
+    @classmethod
+    def tearDownClass(cls):
+        ...
         
     def setUp(self):
         "Подготовка перед каждым тестовым методом."

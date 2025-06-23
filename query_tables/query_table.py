@@ -1,6 +1,5 @@
 from typing import List, Dict, Optional, Type, Union
-import logging
-from query_tables.cache import BaseCache
+from query_tables.cache import BaseCache, AsyncBaseCache
 from query_tables.db import BaseDBQuery, BaseAsyncDBQuery
 from query_tables.query import BaseQuery, BaseJoin
 from query_tables.exceptions import (
@@ -17,7 +16,7 @@ class QueryTable(BaseQuery):
         self, db: object, 
         table_name: str,
         fields: List[str],
-        cache: BaseCache, 
+        cache: Union[BaseCache, AsyncBaseCache], 
         cls_query: Type[BaseQuery]
     ):
         """
@@ -25,13 +24,13 @@ class QueryTable(BaseQuery):
             db (BaseDBQuery): Объект для доступа к БД.
             table_name (str): Название таблицы.
             fields List[str]: Список полей.
-            cache (BaseCache): Кеш.
+            cache (Union[BaseCache, AsyncBaseCache]): Кеш.
             query (Type[BaseQuery]): Класс конструктора запросов.
         """
         self._db: BaseDBQuery = db
         self._table_name: str = table_name
         self._fields: List[str] = fields
-        self._cache: BaseCache = cache
+        self._cache: Union[BaseCache, AsyncBaseCache] = cache
         self._query: BaseQuery = cls_query(table_name, fields)
 
     @property
@@ -227,3 +226,123 @@ class AsyncQueryTable(QueryTable):
             await db_query.execute(query)
         if self._cache.is_enabled_cache():
             self.delete_cache_table()
+            
+            
+class AsyncRemoteQueryTable(QueryTable):
+    """
+        Объединяет работу с запросами и удаленным кешем в асинхронном режиме.
+    """    
+    def __init__(
+        self, db: object, 
+        table_name: str,
+        fields: List[str],
+        cache: AsyncBaseCache, 
+        cls_query: BaseQuery
+    ):
+        """
+        Args:
+            db (BaseAsyncDBQuery): Объект для доступа к БД.
+            table_name (str): Название таблицы.
+            fields List[str]: Список полей.
+            cache (AsyncBaseCache): Кеш.
+            query (BaseQuery): Класс конструктора запросов.
+        """
+        self._db: BaseAsyncDBQuery = None
+        self._table_name: str = ''
+        self._fields: List[str] = list()
+        self._cache: AsyncBaseCache = None
+        self._query: BaseQuery = None
+        super().__init__(
+            db, table_name, fields,
+            cache, cls_query
+        )
+        
+    @property
+    def cache(self) -> AsyncBaseCache:
+        """Кеш данных связанный со своим SQL запросом.
+
+        Returns:
+            AsyncBaseCache: Кеш.
+        """
+        query = self._query.get()
+        return self._cache[query]
+
+    async def delete_cache_query(self):
+        """
+            Удаление кеша привязанного к запросу. 
+        """
+        enabled = await self._cache.is_enabled_cache()
+        if not enabled:
+            raise DesabledCache()
+        query = self._query.get()
+        await self._cache[query].delete_query()
+
+    async def delete_cache_table(self):
+        """
+            Удаляет данные из кеша связанные с таблицей.
+        """
+        enabled = await self._cache.is_enabled_cache()
+        if not enabled:
+            raise DesabledCache()
+        if self._query.is_table_joined:
+            raise ErrorDeleteCacheJoin(self._table_name)
+        await self._cache.delete_cache_table(self._table_name)
+        
+    async def get(self) -> List[Dict]:
+        """
+            Запрос на получение записей.
+        """
+        query = self._query.get()
+        enabled = await self._cache.is_enabled_cache()
+        if enabled:
+            cache_data = await self._cache[query].get()
+            if cache_data:
+                return cache_data
+        async with self._db as db_query:
+            await db_query.execute(query)
+            data = await db_query.fetchall()
+        res = [
+            dict(zip(self._query.map_fields, row)) for row in data
+        ]
+        if enabled and res:
+            await self._cache[query].set_data(res)
+        return res
+
+    async def insert(self, records: List[Dict]): 
+        """Добавляет записи в БД и удаляет 
+            кеш (если включен) по данной таблице.
+
+        Args:
+            records (List[Dict]): Записи для вставки в БД.
+        """        
+        query = self._query.insert(records)
+        async with self._db as db_query:
+            await db_query.execute(query)
+        enabled = await self._cache.is_enabled_cache()
+        if enabled:
+            await self.delete_cache_table()
+
+    async def update(self, **params):
+        """Обнавляет записи в БД и удаляет 
+            кеш (если включен) по данной таблице.
+
+        Args:
+            params: Параметры обновления.
+        """
+        query = self._query.update(**params)
+        async with self._db as db_query:
+            await db_query.execute(query)
+        enabled = await self._cache.is_enabled_cache()
+        if enabled:
+            await self.delete_cache_table()
+
+    async def delete(self):
+        """Удаляет записи из БД и удаляет 
+            кеш (если включен) по данной таблице.
+        """
+        query = self._query.delete()
+        async with self._db as db_query:
+            await db_query.execute(query)
+        enabled = await self._cache.is_enabled_cache()
+        if enabled:
+            await self.delete_cache_table()
