@@ -12,7 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version_app: ${{ steps.version.outputs.VERSION_APP }}
-      desc_commit: ${{ steps.version.outputs.DESC_COMMIT }}
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
@@ -22,14 +21,9 @@ jobs:
     - name: Generate New version
       id: version
       run: |
-        export LANG=ru_RU.UTF-8
-        DESC_COMMIT=$(git log -1 --pretty=format:"%B" --no-patch ${{ github.sha }})
         FIX=$(git log --oneline --grep="fix:" | wc -l)
         FEAT=$(git log --oneline --grep="feat:" | wc -l)
-        cat << EOF > $GITHUB_OUTPUT
-        VERSION_APP=${VERSION_APP}
-        DESC_COMMIT="${DESC_COMMIT}"
-        EOF
+        echo "VERSION_APP=1.${FEAT}.${FIX}" >> $GITHUB_OUTPUT
         echo "VERSION_APP=1.${FEAT}.${FIX}" >> $GITHUB_ENV
 
     - name: Set up Python
@@ -65,8 +59,9 @@ jobs:
       - name: Create Release
         run: |
           export LANG=ru_RU.UTF-8
+          DESC_COMMIT=$(git show --format=%B --no-patch ${{ github.sha }})
           gh release create "v${{ needs.build.outputs.version_app }}" dist/* \
-          --notes "${{ needs.build.outputs.desc_commit }}" --target ${{ github.sha }}
+          --notes "${DESC_COMMIT}" --target ${{ github.sha }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
