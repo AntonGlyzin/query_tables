@@ -23,11 +23,11 @@ setup(
     python_requires=">=3.9",
     author='Антон Глызин',
     author_email='tosha.glyzin@mail.ru',
-    description='Запросы в объектном стиле без моделей с поддержкой кеша данных.',
+    description='Запросы в объектном стиле без моделей с поддержкой кеша данных (CORMless).',
     long_description=long_description,
     long_description_content_type="text/markdown",
     license='MIT',
-    keywords='asyncio orm sql postgres sqlite cache redis python',
+    keywords='cache orm sql table redis postgres sqlite asyncio python',
     classifiers=[
         'Intended Audience :: Developers',
         "Programming Language :: Python :: 3.9",
@@ -39,6 +39,7 @@ setup(
     ],
     project_urls={
         "Releases": "https://github.com/AntonGlyzin/query_tables/releases",
-        "Github": "https://github.com/AntonGlyzin/query_tables"
-    },
+        "Github": "https://github.com/AntonGlyzin/query_tables",
+        "Read the docs": "https://query-tables.readthedocs.io"
+    }
 )
