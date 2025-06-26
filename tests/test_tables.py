@@ -32,6 +32,14 @@ class TestTables(BaseTest):
         
         shutil.copy(tests_dir.joinpath('backup', 'test.db'), tests_dir / 'test_tables_async.db')
         async_sqlite = AsyncSQLiteQuery(tests_dir / 'test_tables_async.db')
+        
+        redis = AsyncRedisCache(RedisConnect())
+        async def get_async_remote_cache():
+            table = TablesAsync(async_sqlite, cache=redis)
+            await table.init()
+            return table
+        cls.remote_cache = cls.loop.run_until_complete(get_async_remote_cache())
+        
         async def get_async_sqlite():
             table = TablesAsync(async_sqlite)
             await table.init()
@@ -42,14 +50,6 @@ class TestTables(BaseTest):
             await table.init()
             return table
         cls.async_sqlite_cache_tables = cls.loop.run_until_complete(get_async_sqlite_cache())
-        
-        redis = AsyncRedisCache(RedisConnect())
-        async def get_async_remote_cache():
-            await redis.clear()
-            table = TablesAsync(async_sqlite, cache=redis)
-            await table.init()
-            return table
-        cls.remote_cache = cls.loop.run_until_complete(get_async_remote_cache())
         
         postgres_async = AsyncPostgresQuery(
             DBConfigPg('localhost', 'query_tables', 'postgres', 'postgres')

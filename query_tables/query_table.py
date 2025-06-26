@@ -164,7 +164,7 @@ class AsyncQueryTable(QueryTable):
         """
         self._db: BaseAsyncDBQuery = None
         self._table_name: str = ''
-        self._fields: List[str] = list()
+        self._fields: List[str] = []
         self._cache: BaseCache = None
         self._query: BaseQuery = None
         super().__init__(
@@ -249,7 +249,7 @@ class AsyncRemoteQueryTable(QueryTable):
         """
         self._db: BaseAsyncDBQuery = None
         self._table_name: str = ''
-        self._fields: List[str] = list()
+        self._fields: List[str] = []
         self._cache: AsyncBaseCache = None
         self._query: BaseQuery = None
         super().__init__(

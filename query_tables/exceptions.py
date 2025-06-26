@@ -123,3 +123,12 @@ class ErrorExecuteQueryDB(ExceptionTable):
     def __init__(self, error):
         message = f"Ошибка при выполнение запроса. {error}"
         super().__init__(message)
+        
+        
+class ErrorGetOrSaveStructTable(ExceptionTable):
+    """
+        Ошибка получения или сохранения структуры таблиц.
+    """  
+    def __init__(self, type_cahe):
+        message = f"Для кеша с типом '{type_cahe}' невозможно сохранять или загружать структуру таблиц."
+        super().__init__(message)

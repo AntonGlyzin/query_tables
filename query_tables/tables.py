@@ -18,7 +18,6 @@ class BaseTables(object):
     def __init__(
         self, db: Union[BaseDBQuery, BaseAsyncDBQuery],
         cls_query_table: Type[Union[QueryTable, AsyncQueryTable]],
-        cache: BaseCache,
         prefix_table: str = '', 
         tables: Optional[List[str]] = None,
         table_schema: str = 'public'
@@ -27,7 +26,6 @@ class BaseTables(object):
         Args:
             db (Union[BaseDBQuery, BaseAsyncDBQuery]): Объект для доступа к БД.
             cls_query_table (Type[Union[QueryTable, AsyncQueryTable]]): Класс запросов.
-            cache (BaseCache): Кеш.
             prefix_table (str, optional): Префикс таблиц которые нужно загрузить. По умолчанию - пустая строка.
                 Загружает таблцы по первой части названия, к примеру: common%. Если пустая строка, загрузить все таблицы из схемы.
             tables (Optional[List[str]], optional): Список подключаемых таблиц. По умолчанию - нет.
@@ -35,7 +33,7 @@ class BaseTables(object):
         """
         self._db: Union[BaseDBQuery, BaseAsyncDBQuery] = db
         self._cls_query_table: Type[Union[QueryTable, AsyncQueryTable]] = cls_query_table
-        self._cache: BaseCache = cache
+        self._cache: BaseCache = None
         self._prefix_table: str = prefix_table
         self._tables: Optional[List[str]] = tables
         self._table_schema: str = table_schema
@@ -116,15 +114,22 @@ class Tables(BaseTables):
             cache_maxsize (int, optional): Размер элементов в кеше.
             cache (BaseCache, optional): Пользовательская реализация кеша.
         """
-        _cache = cache or CacheQuery(cache_ttl, cache_maxsize, False, non_expired)
         super().__init__(
-            db, QueryTable, _cache, 
+            db, QueryTable, 
             prefix_table, tables, table_schema
         )
+        self._cache = cache or CacheQuery(cache_ttl, cache_maxsize, False, non_expired)
+        if TypeCache.remote == self._cache.type_cache:
+            _tables_struct = self._cache._get_struct_tables()
+            if _tables_struct:
+                self._tables_struct = _tables_struct
+                return
         if DBTypes.postgres == db.get_type():
             self._fill_tables_pg_struct()
         elif DBTypes.sqlite == db.get_type():
             self._fill_tables_sqlite_struct()
+        if TypeCache.remote == self._cache.type_cache:
+            self._cache._save_struct_tables(self._tables_struct)
 
     def _fill_tables_pg_struct(self):
         """
@@ -147,7 +152,7 @@ class Tables(BaseTables):
             db_query = self._db.connect()
             db_query.execute("select name from sqlite_master where type='table';")
             for row in db_query.fetchall():
-                self._tables_struct[row[0]] = list()
+                self._tables_struct[row[0]] = []
             for table in self._tables_struct.keys():
                 db_query.execute(f"PRAGMA table_info({table});")
                 for row in db_query.fetchall():
@@ -185,7 +190,7 @@ class TablesAsync(BaseTables):
                 Если включить, будет использоваться вне зависимости от cache_ttl.
                 При non_expired=False и cache_ttl=0 - кеш отключен.
             cache_maxsize (int, optional): Размер элементов в кеше.
-            cache (BaseCache, optional): Пользовательская реализация кеша.
+            cache (AsyncBaseCache, optional): Пользовательская реализация кеша.
         """
         _cache = cache or CacheQuery(cache_ttl, cache_maxsize, True, non_expired)
         cls_query_table = AsyncQueryTable
@@ -193,14 +198,23 @@ class TablesAsync(BaseTables):
             cls_query_table = AsyncRemoteQueryTable
             setattr(self, 'clear_cache', self._clear_cache)
         super().__init__(
-            db, cls_query_table, _cache, 
+            db, cls_query_table, 
             prefix_table, tables, table_schema
         )
+        self._cache = _cache
+    
     async def init(self):
+        if TypeCache.remote == self._cache.type_cache:
+            _tables_struct = await self._cache._get_struct_tables()
+            if _tables_struct:
+                self._tables_struct = _tables_struct
+                return
         if DBTypes.postgres == self._db.get_type():
             await self._fill_tables_pg_struct()
         elif DBTypes.sqlite == self._db.get_type():
             await self._fill_tables_sqlite_struct()
+        if TypeCache.remote == self._cache.type_cache:
+            await self._cache._save_struct_tables(self._tables_struct)
             
     async def _clear_cache(self):
         """
@@ -230,7 +244,7 @@ class TablesAsync(BaseTables):
             await db_query.execute("select name from sqlite_master where type='table';")
             rows = await db_query.fetchall()
             for row in rows:
-                self._tables_struct[row[0]] = list()
+                self._tables_struct[row[0]] = []
             for table in self._tables_struct.keys():
                 await db_query.execute(f"PRAGMA table_info({table});")
                 rows = await db_query.fetchall()
