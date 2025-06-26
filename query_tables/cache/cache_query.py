@@ -3,7 +3,7 @@ from cachetools import TTLCache, LRUCache
 from typing import Union, List, Dict, Iterator, Optional
 from threading import RLock
 from query_tables.exceptions import NotQuery, NoMatchFieldInCache
-from query_tables.cache import BaseCache
+from query_tables.cache import BaseCache, TypeCache
 
 
 class SyncLockDecorator:
@@ -22,7 +22,10 @@ class SyncLockDecorator:
 class CacheQuery(BaseCache):
     """
         Синхронно-асинхронное кеширование данных в памяти процесса на основе запроса к БД.
-    """    
+    """
+    
+    type_cache = TypeCache.local
+    
     def __init__(
         self, ttl: int = 0, 
         maxsize: int = 1024,
@@ -42,7 +45,7 @@ class CacheQuery(BaseCache):
         self._use_async = use_async
         self._non_expired = non_expired
         self._hashkey = '' # хэш от SQL запроса
-        self._filter_params = dict()
+        self._filter_params = {}
         self._tables = LRUCache(maxsize=maxsize) # в каких запросах участвует таблица
         self._cache = (
             LRUCache(maxsize=maxsize)
@@ -128,7 +131,7 @@ class CacheQuery(BaseCache):
         if not self._hashkey:
             raise NotQuery()
         if not any([bool(self._ttl), self._non_expired]):
-            return list()
+            return []
         if self._hashkey in self._cache:
             if not self._filter_params:
                 return self._cache[self._hashkey]
@@ -137,7 +140,7 @@ class CacheQuery(BaseCache):
                 self._filter_params.clear()
                 return data
         self._delete_hashkey_in_tables(self._hashkey)
-        return list()
+        return []
 
     def __setitem__(self, query: str, data: List[Dict]):
         """Сохранить в кеш данные.
@@ -231,7 +234,7 @@ class CacheQuery(BaseCache):
             raise NotQuery()
         if not self._check_fields_in_cache(self._hashkey, list(params.keys())):
             raise NoMatchFieldInCache()
-        updateted_records = list()
+        updateted_records = []
         if self._hashkey not in self._cache:
             return updateted_records
         for record in self._filtered_data(self._hashkey, self._filter_params):
@@ -251,7 +254,7 @@ class CacheQuery(BaseCache):
         """  
         if not self._hashkey:
             raise NotQuery()
-        deleted = list()
+        deleted = []
         if self._hashkey not in self._cache:
             return deleted
         for i in self._get_index_records(self._hashkey, self._filter_params):

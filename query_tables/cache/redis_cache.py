@@ -6,7 +6,7 @@ import logging
 from threading import RLock
 from typing import Union, List, Dict, Optional, Iterator
 from dataclasses import dataclass
-from query_tables.cache import BaseCache
+from query_tables.cache import BaseCache, TypeCache
 from query_tables.exceptions import NoMatchFieldInCache
 from redis.exceptions import ConnectionError, TimeoutError
 
@@ -40,12 +40,12 @@ class RedisConnect:
     db: int = 0
     
     def get_conn(self) -> Dict:
-        return dict(
-            host = self.host,
-            db = self.db,
-            password = self.password,
-            port = self.port
-        )
+        return {
+            'host': self.host,
+            'db': self.db,
+            'password': self.password,
+            'port': self.port
+        }
         
     def get_url(self):
         if not self.password:
@@ -54,6 +54,8 @@ class RedisConnect:
 
         
 class RedisCache(BaseCache):
+    
+    type_cache = TypeCache.remote
     
     def __init__(self, conn: RedisConnect):
         self._conn = conn
@@ -64,9 +66,10 @@ class RedisCache(BaseCache):
         )
         self._key_queries = 'queries'
         self._key_tables = 'tables'
-        self._res: List[Dict] = list()
+        self._key_struct = 'struct_tables'
+        self._res: List[Dict] = []
         self._hashkey = ''
-        self._filter_params = dict()
+        self._filter_params = {}
         self._rlock = RLock()
         lock_methods = [
             self.is_enabled_cache,
@@ -134,7 +137,7 @@ class RedisCache(BaseCache):
         return self._getitem_(query)
     
     def _getitem_(self, query: str) -> 'BaseCache':
-        self._res = list()
+        self._res = []
         self._hashkey = self._get_hashkey_query(query)
         res_str = self._redis.get(f'{self._key_queries}:{self._hashkey}')
         if res_str:
@@ -234,7 +237,7 @@ class RedisCache(BaseCache):
         """
         if not self._check_fields_in_cache(list(params.keys())):
             raise NoMatchFieldInCache()
-        updateted_records = list()
+        updateted_records = []
         if not self._redis.exists(f'{self._key_queries}:{self._hashkey}'):
             self._filter_params.clear()
             return updateted_records
@@ -254,9 +257,9 @@ class RedisCache(BaseCache):
         Returns:
             Union[List[Dict], List]: Удаленные записи из кеша или пустой список.
         """
-        deleted = list()
+        deleted = []
         if not self._redis.exists(f'{self._key_queries}:{self._hashkey}'):
-            self._res = list()
+            self._res = []
             self._filter_params.clear()
             return deleted
         for i in self._get_index_records(self._filter_params):
@@ -265,6 +268,26 @@ class RedisCache(BaseCache):
         self._redis.set(f'{self._key_queries}:{self._hashkey}', self._encode_data(self._res))
         self._filter_params.clear()
         return deleted
+    
+    def _get_struct_tables(self) -> Optional[Dict[str, List[str]]]:
+        """Получение из кеша структуры таблиц.
+
+        Returns:
+            Optional[Dict[str, List[str]]]: Структура таблиц.
+        """        
+        res = self._redis.get(self._key_struct)
+        if not res:
+            return None 
+        return json.loads(res)
+        
+    def _save_struct_tables(self, struct: Dict[str, List[str]]):
+        """Сохранение в кеше структуры таблиц.
+
+        Args:
+            struct (Dict[str, List[str]]): Структура таблиц.
+        """        
+        res = json.dumps(struct)
+        self._redis.set(self._key_struct, res)
     
     def _encode_data(self, data: List[Dict]) -> str:
         """Кодирование данных перед отправкой в редис.

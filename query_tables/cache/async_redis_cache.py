@@ -5,9 +5,8 @@ import json
 import datetime
 import logging
 from typing import Union, List, Dict, Optional, Iterator
-from query_tables.cache import AsyncBaseCache
+from query_tables.cache import AsyncBaseCache, RedisConnect, TypeCache
 from query_tables.exceptions import NoMatchFieldInCache
-from query_tables.cache import RedisConnect
 
 logger = logging.getLogger(__name__)
 
@@ -32,15 +31,18 @@ class AsyncLockDecorator:
 
 class AsyncRedisCache(AsyncBaseCache):
     
+    type_cache = TypeCache.remote
+    
     def __init__(self, conn: RedisConnect):
         self._conn = conn
         self._pool = aioredis.ConnectionPool.from_url(conn.get_url(), encoding="utf-8", decode_responses=True)
         self._redis = aioredis.Redis.from_pool(connection_pool=self._pool)
         self._key_queries = 'queries'
         self._key_tables = 'tables'
-        self._res: List[Dict] = list()
+        self._key_struct = 'struct_tables'
+        self._res: List[Dict] = []
         self._hashkey = ''
-        self._filter_params = dict()
+        self._filter_params = {}
         self._lock = asyncio.Lock()
         lock_methods = [
             self.is_enabled_cache,
@@ -106,7 +108,7 @@ class AsyncRedisCache(AsyncBaseCache):
         Returns:
             AsyncBaseCache: Кеш.
         """
-        self._res = list()
+        self._res = []
         self._hashkey = self._get_hashkey_query(query)
         return self
     
@@ -177,7 +179,7 @@ class AsyncRedisCache(AsyncBaseCache):
             res_key = await client.exists(f'{self._key_queries}:{self._hashkey}')
         if not res_key:
             await self._delete_hashkey_in_tables(self._hashkey)
-            self._res = list()
+            self._res = []
             return None
         self._res.append(record)
         async with self._redis as client:
@@ -197,7 +199,7 @@ class AsyncRedisCache(AsyncBaseCache):
         Returns:
             Union[List[Dict], List]: Обновленные записи или пустой список.
         """
-        updateted_records = list()
+        updateted_records = []
         if not self._res:
             await self._init_data()
         if not self._check_fields_in_cache(list(self._filter_params.keys())):
@@ -208,7 +210,7 @@ class AsyncRedisCache(AsyncBaseCache):
             res_key = await client.exists(f'{self._key_queries}:{self._hashkey}')
         if not res_key:
             await self._delete_hashkey_in_tables(self._hashkey)
-            self._res = list()
+            self._res = []
             self._filter_params.clear()
             return updateted_records
         for record in self._filtered_data(self._filter_params):
@@ -228,7 +230,7 @@ class AsyncRedisCache(AsyncBaseCache):
         Returns:
             Union[List[Dict], List]: Удаленные записи из кеша или пустой список.
         """
-        deleted = list()
+        deleted = []
         if not self._res:
             await self._init_data()
         if not self._check_fields_in_cache(list(self._filter_params.keys())):
@@ -237,7 +239,7 @@ class AsyncRedisCache(AsyncBaseCache):
             res_key = await client.exists(f'{self._key_queries}:{self._hashkey}')
         if not res_key:
             await self._delete_hashkey_in_tables(self._hashkey)
-            self._res = list()
+            self._res = []
             self._filter_params.clear()
             return deleted
         for i in self._get_index_records(self._filter_params):
@@ -247,6 +249,28 @@ class AsyncRedisCache(AsyncBaseCache):
             await client.set(f'{self._key_queries}:{self._hashkey}', self._encode_data(self._res))
         self._filter_params.clear()
         return deleted
+    
+    async def _get_struct_tables(self) -> Optional[Dict[str, List[str]]]:
+        """Получение из кеша структуры таблиц.
+
+        Returns:
+            Optional[Dict[str, List[str]]]: Структура таблиц.
+        """
+        async with self._redis as client:
+            res = await client.get(self._key_struct)
+        if not res:
+            return None 
+        return json.loads(res)
+        
+    async def _save_struct_tables(self, struct: Dict[str, List[str]]):
+        """Сохранение в кеше структуры таблиц.
+
+        Args:
+            struct (Dict[str, List[str]]): Структура таблиц.
+        """        
+        res = json.dumps(struct)
+        async with self._redis as client:
+            await client.set(self._key_struct, res)
     
     async def _init_data(self):
         """ Инициализирует переменную с данными по запросу. """

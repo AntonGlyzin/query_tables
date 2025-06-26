@@ -1,6 +1,7 @@
 from abc import ABC
 from typing import Union, List, Dict, Optional
 from dataclasses import dataclass
+from query_tables.exceptions import ErrorGetOrSaveStructTable
 
 
 @dataclass
@@ -11,7 +12,7 @@ class TypeCache:
 
 class BaseCache(ABC):
     
-    type_cache = 'local'
+    type_cache = TypeCache.local
     
     def is_enabled_cache(self) -> bool:
         """
@@ -121,10 +122,28 @@ class BaseCache(ABC):
         """        
         ...
         
+    def _get_struct_tables(self) -> Optional[Dict[str, List[str]]]:
+        """Получение из кеша структуры таблиц.
+
+        Returns:
+            Optional[Dict[str, List[str]]]: Структура таблиц.
+        """        
+        if self.type_cache == TypeCache.local:
+            raise ErrorGetOrSaveStructTable(self.type_cache)
         
+    def _save_struct_tables(self, struct: Dict[str, List[str]]):
+        """Сохранение в кеше структуры таблиц.
+
+        Args:
+            struct (Dict[str, List[str]]): Структура таблиц.
+        """        
+        if self.type_cache == TypeCache.local:
+            raise ErrorGetOrSaveStructTable(self.type_cache)
+
+
 class AsyncBaseCache(ABC):
     
-    type_cache = 'remote'
+    type_cache = TypeCache.remote
     
     def __getitem__(self, query: str) -> 'AsyncBaseCache':
         """Устанавливает контекст SQL запроса.
@@ -226,5 +245,21 @@ class AsyncBaseCache(ABC):
 
         Returns:
             Union[List[Dict], List]: Удаленные записи из кеша или пустой список.
+        """        
+        ...
+        
+    async def _get_struct_tables(self) -> Optional[Dict[str, List[str]]]:
+        """Получение из кеша структуры таблиц.
+
+        Returns:
+            Optional[Dict[str, List[str]]]: Структура таблиц.
+        """        
+        ...
+        
+    async def _save_struct_tables(self, struct: Dict[str, List[str]]):
+        """Сохранение в кеше структуры таблиц.
+
+        Args:
+            struct (Dict[str, List[str]]): Структура таблиц.
         """        
         ...
