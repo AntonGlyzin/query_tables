@@ -1026,9 +1026,6 @@ class TestTables(BaseTest):
         self.pg_redis_tables.query(
             "update example_data_types set varchar_column='test1' where id=1"
         )
-        # import time 
-        
-        # time.sleep(1)
         
         async def case6_localcache():
             logger.info("-Выполнение асинхронных произвольных запросов с локальным кешем.")

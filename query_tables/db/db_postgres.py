@@ -106,7 +106,10 @@ class PostgresQuery(BasePostgreDBQuery):
         try:
             return self._cursor.fetchall()
         except Exception as e:
-            logger.error(f"Ошибка при получение результата из запроса: {e}")
+            if str(e).startswith('no results to fetch'):
+                pass  # Игнорируем ошибку, если операция не возвращает строк
+            else:
+                logger.error(f"Ошибка при получение результата из запроса: {e}")
 
 
 class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
@@ -160,6 +163,9 @@ class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
         if self._conn is not None:
             await self._pool.release(self._conn)
             self._conn = None
+        if self._pool is not None:
+            await self._pool.close()
+            self._pool = None
 
     async def execute(self, query: str) -> 'AsyncPostgresQuery':
         """Выполнение запроса.
