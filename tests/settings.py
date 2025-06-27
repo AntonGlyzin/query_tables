@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 import logging
 import unittest
+import psycopg2
 
 path = Path(__file__)
 tests_dir = path.parent
@@ -21,6 +22,13 @@ logger.addHandler(console_handler)
 file_handler = logging.FileHandler(tests_dir / 'unit_tests.log', mode='w', encoding='utf8')
 file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 logger.addHandler(file_handler)
+
+# Параметры подключения к серверу PostgreQL
+DB_NAME = 'query_tables'
+USERNAME = 'postgres' # Обычно postgres
+PASSWORD = 'postgres'
+HOST = 'localhost'
+PORT = '5432'
 
 #python -m unittest discover -s ./tests
 class BaseTest(unittest.TestCase):
@@ -57,3 +65,35 @@ class BaseTest(unittest.TestCase):
     def tearDown(self):
         "Очистка после каждого тестового метода."
         ...
+    
+    @classmethod
+    def _create_db_ifnotexist_postgres(cls):
+        
+        try:
+            conn = psycopg2.connect(
+                dbname='postgres',  # По умолчанию используем базу данных postgres
+                user=USERNAME,
+                password=PASSWORD,
+                host=HOST,
+                port=PORT
+            )
+            conn.autocommit = True
+            cur = conn.cursor()
+            check_query = f"""
+                SELECT EXISTS (
+                    SELECT datname FROM pg_catalog.pg_database WHERE lower(datname) = '{DB_NAME.lower()}');
+            """
+            cur.execute(check_query)
+            exists = cur.fetchone()[0]
+            if not exists:
+                logger.info(f"База данных {DB_NAME} не существует. Создаем...")
+                create_query = f"CREATE DATABASE {DB_NAME};"
+                cur.execute(create_query)
+                logger.info("Создание базы данных успешно.")
+        except Exception as e:
+            logger.info(f"Произошла ошибка: {e}")
+        finally:
+            if cur:
+                cur.close()
+            if conn:
+                conn.close()

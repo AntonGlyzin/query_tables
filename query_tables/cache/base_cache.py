@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Union, List, Dict, Optional
+from typing import Union, List, Dict, Optional, Tuple
 from dataclasses import dataclass
 from query_tables.exceptions import ErrorGetOrSaveStructTable
 
@@ -119,6 +119,26 @@ class BaseCache(ABC):
 
         Returns:
             Union[List[Dict], List]: Удаленные записи из кеша или пустой список.
+        """        
+        ...
+        
+    def _get_data_query(self, query: str) -> Union[List[List], List]:
+        """Получает данные из произвольного запроса.
+
+        Args:
+            query (str): SQL запрос.
+
+        Returns:
+            Union[List[List], List]: Данные.
+        """        
+        ...
+        
+    def _save_data_query(self, query: str, data: List[Tuple]):
+        """Сохраняет даннные произвольного запроса в кеш.
+
+        Args:
+            query (str): SQL запрос.
+            data (List[Tuple]): Данные.
         """        
         ...
         
@@ -245,6 +265,26 @@ class AsyncBaseCache(ABC):
 
         Returns:
             Union[List[Dict], List]: Удаленные записи из кеша или пустой список.
+        """        
+        ...
+        
+    async def _get_data_query(self, query: str) -> Union[List[List], List]:
+        """Получает данные из произвольного запроса.
+
+        Args:
+            query (str): SQL запрос.
+
+        Returns:
+            Union[List[List], List]: Данные.
+        """        
+        ...
+        
+    async def _save_data_query(self, query: str, data: List[Tuple]):
+        """Сохраняет даннные произвольного запроса в кеш.
+
+        Args:
+            query (str): SQL запрос.
+            data (List[Tuple]): Данные.
         """        
         ...
         

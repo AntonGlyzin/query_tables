@@ -507,6 +507,64 @@ await table.clear_cache()
 ```
 
 ---
+## Выполнение сырых SQL запросов.
+
+Возможно ваш запрос большой или вы хотели бы получить данные не из кеша.
+```python
+from query_tables import Tables
+from query_tables.db import DBConfigPg, PostgresQuery
+from query_tables.cache import RedisCache, RedisConnect
+
+postgres = PostgresQuery(
+    DBConfigPg('localhost', 'test', 'postgres', 'postgres')
+)
+connect = RedisConnect() # параметры соединения с редисом
+redis_cache = RedisCache(connect)
+tables = Tables(postgres, cache=redis_cache)# кеш redis
+
+# получение списка кортежей
+rows = tables.query('select * from person')
+```
+
+Если все же вы хотели бы его закешировать. Получаем данные из БД и сразу их кешируем по sql запросу.
+```python
+query = 'select * from person'
+rows = tables.query(query, cache=True)
+```
+
+В следующий раз получаем данные из кеша:
+```python
+rows = tables.query(query, cache=True)
+```
+
+Предположим вы знаете, что в таблице были изменены данные, и вы хотели бы снова получить их из БД в кеш:
+
+```python
+rows = tables.query(query, cache=True, is_new_data=True)
+```
+Будет обновлен кеш по запросу и получены новые данные.
+
+Для асинхронного режима:
+```python
+from query_tables import TablesAsync
+from query_tables.cache import RedisConnect, AsyncRedisCache
+from query_tables.db import (
+    DBConfigPg, 
+    AsyncPostgresQuery
+)
+
+postgres_async = AsyncPostgresQuery(
+    DBConfigPg('localhost', 'test', 'postgres', 'postgres')
+)
+
+redis = AsyncRedisCache(RedisConnect())
+table = TablesAsync(postgres_async, cache=redis)
+await table.init()
+query = 'select * from person'
+rows = await tables.query(query)
+```
+
+---
 ## Внешние ссылки
 
 - [Журнал изменений](https://github.com/AntonGlyzin/query_tables/releases)

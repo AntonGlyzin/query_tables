@@ -19,7 +19,7 @@ class Query(BaseQuery):
         """
         self._table_name = table_name
         self._fields = fields # Все поля в формате <поле> из текущей таблицы.
-        self._user_fields = list() # Пользовательские подля в формате <поле> текущей таблицы.
+        self._user_fields = [] # Пользовательские подля в формате <поле> текущей таблицы.
         # Формат поля <таблица>.<поле> 
         self._map_select = [
             f'{self._table_name}.{field}' for field in self._fields
@@ -29,7 +29,7 @@ class Query(BaseQuery):
         self._insert = f'insert into {self._table_name} '
         self._update = f'update {self._table_name} set '
         self._join = ''
-        self._joined_tables: List[BaseQuery] = list() 
+        self._joined_tables: List[BaseQuery] = []
         self._where = ''
         self._order_by = ''
         self._limit = ''
@@ -145,7 +145,7 @@ class Query(BaseQuery):
         Returns:
             BaseQuery: Экземпляр запроса.
         """
-        where = list()
+        where = []
         for field, value in params.items():
             _field, operator = self._get_operator_by_field(field)
             self._exist_field(_field)
@@ -164,7 +164,7 @@ class Query(BaseQuery):
         Returns:
             BaseQuery: Экземпляр запроса.
         """
-        order_by = list()
+        order_by = []
         for field, order in kwargs.items():
             order_by.append(
                 f'{self._table_name}.{field} {order}'
@@ -232,7 +232,7 @@ class Query(BaseQuery):
         """
         if self.is_table_joined:
             raise ErrorExecuteJoinQuery('update')
-        fields = list()
+        fields = []
         set_fields = ''
         for field, value in params.items():
             self._exist_field(field)
@@ -263,9 +263,9 @@ class Query(BaseQuery):
             raise ErrorExecuteJoinQuery('insert')
         fields = list(records[0].keys())
         self._exist_fields(fields)
-        into_values = list()
+        into_values = []
         for record in records:
-            values = list()
+            values = []
             for field in fields:
                 if record[field] is None:
                     continue

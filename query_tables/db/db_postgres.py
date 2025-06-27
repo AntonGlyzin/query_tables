@@ -21,13 +21,13 @@ class DBConfigPg:
     maxconn: int = 10
     
     def get_conn(self) -> Dict:
-        return dict(
-            host = self.host,
-            database = self.database,
-            user = self.user,
-            password = self.password,
-            port = self.port
-        )
+        return {
+            'host': self.host,
+            'database': self.database,
+            'user': self.user,
+            'password': self.password,
+            'port': self.port
+        }
 
 
 class PostgresQuery(BasePostgreDBQuery):
@@ -168,7 +168,10 @@ class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
             query (str): SQL запрос.
         """
         try:
-            self._res = await self._conn.fetch(query)
+            res = await self._conn.fetch(query)
+            self._res = []
+            for row in res:
+                self._res.append(tuple(row))
         except Exception as e:
             logger.error(f"Ошибка при выполнении SQL-запроса: {e}")
         return self

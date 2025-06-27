@@ -3,8 +3,10 @@ import redis
 import json
 import datetime
 import logging
+import base64
+import uuid
 from threading import RLock
-from typing import Union, List, Dict, Optional, Iterator
+from typing import Union, List, Dict, Optional, Iterator, Tuple
 from dataclasses import dataclass
 from query_tables.cache import BaseCache, TypeCache
 from query_tables.exceptions import NoMatchFieldInCache
@@ -269,6 +271,31 @@ class RedisCache(BaseCache):
         self._filter_params.clear()
         return deleted
     
+    def _get_data_query(self, query: str) -> Union[List[List], List]:
+        """Получает данные из произвольного запроса.
+
+        Args:
+            query (str): SQL запрос.
+
+        Returns:
+            Union[List[List], List]: Данные.
+        """        
+        hashkey = self._get_hashkey_query(query)
+        res_str = self._redis.get(f'{self._key_queries}:{hashkey}')
+        if res_str:
+            return json.loads(res_str)
+        return []
+        
+    def _save_data_query(self, query: str, data: List[Tuple]):
+        """Сохраняет даннные произвольного запроса в кеш.
+
+        Args:
+            query (str): SQL запрос.
+            data (List[Tuple]): Данные.
+        """        
+        hashkey = self._get_hashkey_query(query)
+        self._redis.set(f'{self._key_queries}:{hashkey}', self._encode_data(data))
+    
     def _get_struct_tables(self) -> Optional[Dict[str, List[str]]]:
         """Получение из кеша структуры таблиц.
 
@@ -302,6 +329,14 @@ class RedisCache(BaseCache):
             def default(self, o):
                 if isinstance(o, datetime.datetime):
                     return o.isoformat()
+                elif isinstance(o, memoryview):
+                    return bytes(o).hex()
+                elif isinstance(o, tuple):
+                    return list(o)
+                elif isinstance(o, bytes):
+                    return base64.b64encode(o).decode('utf-8')
+                elif isinstance(o, uuid.UUID):
+                    return str(o)
                 return super().default(o)
         return json.dumps(data, cls=Encoder)
     

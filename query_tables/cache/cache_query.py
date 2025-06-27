@@ -1,6 +1,6 @@
 import hashlib
 from cachetools import TTLCache, LRUCache
-from typing import Union, List, Dict, Iterator, Optional
+from typing import Union, List, Dict, Iterator, Optional, Tuple
 from threading import RLock
 from query_tables.exceptions import NotQuery, NoMatchFieldInCache
 from query_tables.cache import BaseCache, TypeCache
@@ -262,6 +262,30 @@ class CacheQuery(BaseCache):
             del self._cache[self._hashkey][i]
         self._filter_params.clear()
         return deleted
+    
+    def _get_data_query(self, query: str) -> Union[List[Tuple], List]:
+        """Получает данные из произвольного запроса.
+
+        Args:
+            query (str): SQL запрос.
+
+        Returns:
+            Union[List[List], List]: Данные.
+        """
+        hashkey = self._get_hashkey_query(query)
+        if hashkey in self._cache:
+            return self._cache[self._hashkey]
+        return []
+        
+    def _save_data_query(self, query: str, data: List[Tuple]):
+        """Сохраняет даннные произвольного запроса в кеш.
+
+        Args:
+            query (str): SQL запрос.
+            data (List[Tuple]): Данные.
+        """
+        hashkey = self._get_hashkey_query(query)
+        self._cache[hashkey] = data
 
     def _get_index_records(self, hashkey: str, params: Dict) -> Iterator[int]:
         """Получение индексов записей в кеше.

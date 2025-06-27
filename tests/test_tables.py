@@ -2,7 +2,7 @@ import shutil
 import os
 import asyncio
 from settings import logger, BaseTest, tests_dir
-from query_tables.db import SQLiteQuery, AsyncSQLiteQuery, AsyncPostgresQuery, DBConfigPg
+from query_tables.db import SQLiteQuery, AsyncSQLiteQuery, AsyncPostgresQuery, DBConfigPg, PostgresQuery
 from query_tables.tables import Tables, TablesAsync
 from query_tables.query import Join, LeftJoin
 from query_tables.exceptions import DesabledCache, ErrorExecuteJoinQuery
@@ -51,6 +51,77 @@ class TestTables(BaseTest):
             return table
         cls.async_sqlite_cache_tables = cls.loop.run_until_complete(get_async_sqlite_cache())
         
+        cls._create_db_ifnotexist_postgres()
+        
+        cls.postgres = PostgresQuery(
+            DBConfigPg('localhost', 'query_tables', 'postgres', 'postgres')
+        )
+        
+        with cls.postgres as db_query:
+            db_query.execute(
+                """ 
+                    CREATE TABLE IF NOT EXISTS example_data_types (
+                            id SERIAL PRIMARY KEY,
+                            varchar_column VARCHAR(255),
+                            bigint_column BIGINT,
+                            boolean_column BOOLEAN,
+                            timestamp_column TIMESTAMP,
+                            bytea_column BYTEA,
+                            uuid_column UUID,
+                            json_column JSON,
+                            jsonb_column JSONB,
+                            array_column INTEGER[],
+                            text_array TEXT[]
+                        );
+                """
+            )
+            db_query.execute('delete from public.example_data_types')
+            db_query.execute(
+                """ 
+                    INSERT INTO public.example_data_types (
+                            varchar_column, 
+                            bigint_column, 
+                            boolean_column, 
+                            timestamp_column, 
+                            bytea_column, 
+                            uuid_column, 
+                            json_column, 
+                            jsonb_column, 
+                            array_column, 
+                            text_array
+                        ) VALUES
+                        (
+                            'First entry',
+                            12345678901234567,
+                            true,
+                            NOW(),
+                            E'\\\\xdeadbeefcafe',
+                            'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid,
+                            '{"key":"value"}',
+                            '{"key":"value"}',
+                            ARRAY[1, 2, 3],
+                            ARRAY['first', 'second']
+                        ),
+                        (
+                            'Second entry',
+                            98765432109876543,
+                            false,
+                            NOW() + INTERVAL '1 hour',
+                            E'\\\\xfeedfacedeadbeef',
+                            'f47ac10b-58cc-4372-a567-0e02b2c3d479'::uuid,
+                            '{"foo":"bar","baz":[1,2,3]}',
+                            '{"foo":"bar","baz":[1,2,3]}',
+                            ARRAY[-1,-2,-3],
+                            ARRAY['third', 'fourth']
+                        );
+                """
+            )
+        
+        connect = RedisConnect(db=1)
+        redis_cache = RedisCache(connect)
+        redis_cache.clear()
+        cls.pg_redis_tables = Tables(cls.postgres, cache=redis_cache)# кеш redis
+        
         postgres_async = AsyncPostgresQuery(
             DBConfigPg('localhost', 'query_tables', 'postgres', 'postgres')
         )
@@ -83,11 +154,27 @@ class TestTables(BaseTest):
             return table
         cls.async_tables_postgres = cls.loop.run_until_complete(get_async_postgres())
         
+        async def get_async_postgres_redis():
+            connect = RedisConnect(db=1)
+            redis_cache = AsyncRedisCache(connect)
+            table = TablesAsync(postgres_async, cache=redis_cache)
+            await table.init()
+            return table
+        
+        cls.async_tables_postgres_redis = cls.loop.run_until_complete(get_async_postgres_redis())
+        
     @classmethod
     def tearDownClass(cls):
         try:
             os.remove(tests_dir / 'test_tables.db')
             os.remove(tests_dir / 'test_tables_async.db')
+            with cls.postgres as db_query:
+                db_query.execute(
+                    "DROP TABLE IF EXISTS public.address;"
+                )
+                db_query.execute(
+                    "DROP TABLE IF EXISTS public.example_data_types;"
+                )
             cls.loop.close()
         except Exception:
             logger.info('----Ошибка удаление временной БД.')
@@ -420,7 +507,7 @@ class TestTables(BaseTest):
         logger.debug(query.cache.get())
         self.assertEqual(len(query.cache.get()), 1)
         self.assertEqual(query.cache.get()[0]['person.name'], 'Anton 2')
-        c_tables.clear_cache()
+        await c_tables.clear_cache()
         
         logger.info('----Получение нескольких записей.')
         query = c_tables['person'].join(
@@ -497,7 +584,7 @@ class TestTables(BaseTest):
         self.assertFalse(query2.cache.get())
         self.assertFalse(query2.cache.get())
         self.assertTrue(query3.cache.get())
-        c_tables.clear_cache()
+        await c_tables.clear_cache()
         
         logger.info('----Удаление кеша по таблице по запросу.')
         query1 = c_tables['person'].join(
@@ -528,7 +615,7 @@ class TestTables(BaseTest):
         self.assertFalse(query2.cache.get())
         self.assertFalse(query2.cache.get())
         self.assertTrue(query3.cache.get())
-        c_tables.clear_cache()
+        await c_tables.clear_cache()
         
         logger.info('----Удаление кеша по таблице при изменение данных.')
         query1 = c_tables['person'].join(
@@ -559,7 +646,7 @@ class TestTables(BaseTest):
         self.assertFalse(query2.cache.get())
         self.assertFalse(query2.cache.get())
         self.assertTrue(query3.cache.get())
-        c_tables.clear_cache()
+        await c_tables.clear_cache()
         
     async def _async_remote_cache_query(self, c_tables: TablesAsync):
         await c_tables.clear_cache()
@@ -768,14 +855,14 @@ class TestTables(BaseTest):
         self.assertEqual(res[-1]['person.name'], 'Ton')
         self.assertEqual(res[-1]['person.age'], 55)
         id_res = res[-1]['person.id']
-        table.clear_cache()
+        await table.clear_cache()
         
         logger.info('----Изменение данных в БД.')
         await table['person'].filter(id=id_res).update(login='ant2', age=32)
         res = await table['person'].filter(id=id_res).get()
         self.assertEqual(res[0]['person.login'], 'ant2')
         self.assertEqual(res[0]['person.age'], 32)
-        table.clear_cache()
+        await table.clear_cache()
         
         logger.info('----Удаление данных из БД.')
         await table['person'].filter(id=id_res).delete()
@@ -896,6 +983,123 @@ class TestTables(BaseTest):
         logger.info("-redis кеша.")
         self.loop.run_until_complete(self._async_remote_change_db_query(self.remote_cache))
         logger.info("-------------------------------------------------------")
+        
+    def test_case_5(self):
+        logger.info("5. Получение из postgres данных с разными типами и сохранение в кеш redis.")
+        self.pg_redis_tables['example_data_types'].get()
+        res = self.pg_redis_tables['example_data_types'].cache.get()
+        self.pg_redis_tables.clear_cache()
+        logger.debug(res)
+        logger.info("-------------------------------------------------------")
+        
+    def test_case_6(self):
+        logger.info("6. Выполнение произвольных запросов.")
+        
+        logger.info("----На получение данных из БД.")
+        data = self.pg_redis_tables.query(
+            """ 
+                select * from example_data_types
+            """
+        )
+        self.assertEqual(len(data), 2)
+        logger.debug(data)
+        
+        logger.info("----Получение данных и кеширование")
+        data = self.pg_redis_tables.query(
+            """ 
+                select * from example_data_types
+            """, True
+        )
+        self.assertEqual(len(data), 2)
+        logger.debug(data)
+        
+        logger.info("----Получение данных из кеша")
+        data = self.pg_redis_tables.query(
+            """ 
+                select * from example_data_types
+            """, True
+        )
+        self.assertEqual(len(data), 2)
+        logger.debug(data)
+        
+        logger.info("----Установить новые данные в кеш, даже если запрос был закеширован")
+        self.pg_redis_tables.query(
+            "update example_data_types set varchar_column='test1' where id=1"
+        )
+        # import time 
+        
+        # time.sleep(1)
+        
+        async def case6_localcache():
+            logger.info("-Выполнение асинхронных произвольных запросов с локальным кешем.")
+            logger.info("----На получение данных из БД.")
+            data = await self.async_tables_postgres.query(
+                """ 
+                    select * from example_data_types
+                """
+            )
+            self.assertEqual(len(data), 2)
+            logger.debug(data)
+            
+            logger.info("----Получение данных из кеша")
+            data = await self.async_tables_postgres.query(
+                """ 
+                    select * from example_data_types
+                """, True
+            )
+            self.assertEqual(len(data), 2)
+            logger.debug(data)
+            
+            logger.info("----Получить новые данные, даже если запрос был закеширован")
+            data = await self.async_tables_postgres.query(
+                """ 
+                    select * from example_data_types
+                """, True, True
+            )
+            logger.debug(data)
+            self.assertEqual(data[1][1], 'test1')
+        
+        self.loop.run_until_complete(case6_localcache())
+        
+        async def case6_remotecache():
+            logger.info("-Выполнение асинхронных произвольных запросов c удаленным кешем.")
+            logger.info("----На получение данных из БД.")
+            data = await self.async_tables_postgres_redis.query(
+                """ 
+                    select * from example_data_types
+                """
+            )
+            logger.debug(data)
+            self.assertEqual(len(data), 2)
+            
+            logger.info("----Получение данных из кеша")
+            data = await self.async_tables_postgres_redis.query(
+                """ 
+                    select * from example_data_types
+                """, True
+            )
+            logger.debug(data)
+            self.assertEqual(len(data), 2)
+            self.assertEqual(data[0][1], 'First entry')
+            
+            
+            logger.info("----Получить новые данные, даже если запрос был закеширован")
+            data = await self.async_tables_postgres_redis.query(
+                """ 
+                    select * from example_data_types
+                """, True, True
+            )
+            logger.debug(data)
+            self.assertEqual(data[1][1], 'test1')
+            
+            logger.info("----Установить новые данные в кеш, даже если запрос был закеширован")
+            await self.async_tables_postgres_redis.query(
+                "update example_data_types set varchar_column='test2' where id=2"
+            )
+        
+        self.loop.run_until_complete(case6_remotecache())
+        logger.info("-------------------------------------------------------")
+        
         
 if __name__ == "__main__":
     TestTables.start()

@@ -4,7 +4,9 @@ from redis import asyncio as aioredis
 import json
 import datetime
 import logging
-from typing import Union, List, Dict, Optional, Iterator
+import base64
+import uuid
+from typing import Union, List, Dict, Optional, Iterator, Tuple
 from query_tables.cache import AsyncBaseCache, RedisConnect, TypeCache
 from query_tables.exceptions import NoMatchFieldInCache
 
@@ -250,6 +252,33 @@ class AsyncRedisCache(AsyncBaseCache):
         self._filter_params.clear()
         return deleted
     
+    async def _get_data_query(self, query: str) -> Union[List[List], List]:
+        """Получает данные из произвольного запроса.
+
+        Args:
+            query (str): SQL запрос.
+
+        Returns:
+            Union[List[List], List]: Данные.
+        """        
+        hashkey = self._get_hashkey_query(query)
+        async with self._redis as client:
+            res_str = await client.get(f'{self._key_queries}:{hashkey}')
+        if res_str:
+            return json.loads(res_str)
+        return []
+        
+    async def _save_data_query(self, query: str, data: List[Tuple]):
+        """Сохраняет даннные произвольного запроса в кеш.
+
+        Args:
+            query (str): SQL запрос.
+            data (List[Tuple]): Данные.
+        """        
+        hashkey = self._get_hashkey_query(query)
+        async with self._redis as client:
+            await client.set(f'{self._key_queries}:{hashkey}', self._encode_data(data))
+    
     async def _get_struct_tables(self) -> Optional[Dict[str, List[str]]]:
         """Получение из кеша структуры таблиц.
 
@@ -261,7 +290,7 @@ class AsyncRedisCache(AsyncBaseCache):
         if not res:
             return None 
         return json.loads(res)
-        
+    
     async def _save_struct_tables(self, struct: Dict[str, List[str]]):
         """Сохранение в кеше структуры таблиц.
 
@@ -294,6 +323,14 @@ class AsyncRedisCache(AsyncBaseCache):
             def default(self, o):
                 if isinstance(o, datetime.datetime):
                     return o.isoformat()
+                elif isinstance(o, memoryview):
+                    return bytes(o).hex()
+                elif isinstance(o, tuple):
+                    return list(o)
+                elif isinstance(o, bytes):
+                    return base64.b64encode(o).decode('utf-8')
+                elif isinstance(o, uuid.UUID):
+                    return str(o)
                 return super().default(o)
         return json.dumps(data, cls=Encoder)
     

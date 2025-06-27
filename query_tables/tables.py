@@ -1,5 +1,5 @@
 
-from typing import List, Optional, Union, Type
+from typing import List, Optional, Union, Type, Tuple
 from query_tables.exceptions import (
     NotTable, ExceptionQueryTable, 
     ErrorLoadingStructTables
@@ -130,6 +130,33 @@ class Tables(BaseTables):
             self._fill_tables_sqlite_struct()
         if TypeCache.remote == self._cache.type_cache:
             self._cache._save_struct_tables(self._tables_struct)
+            
+    def query(
+        self, sql: str,
+        cache: bool = False,
+        is_new_data: bool = False
+    ) -> Optional[List[Tuple]]:
+        """Выполнение произвольного SQL запроса.
+        Могут выполняться запросы на изменения и получения данных.
+
+        Args:
+            sql (str): SQL запрос.
+            cache (bool): Работать ли с кешем.
+            is_new_data (bool): Установить новые данные из запроса, если вы работает с кешем.
+
+        Returns:
+            Optional[List[Tuple]]: Результат.
+        """
+        if cache and not is_new_data:
+            data = self._cache._get_data_query(sql)
+            if data:
+                return data
+        with self._db as db_query:
+            db_query.execute(sql)
+            data = db_query.fetchall()
+        if cache:
+            self._cache._save_data_query(sql, data)
+        return data
 
     def _fill_tables_pg_struct(self):
         """
@@ -192,16 +219,14 @@ class TablesAsync(BaseTables):
             cache_maxsize (int, optional): Размер элементов в кеше.
             cache (AsyncBaseCache, optional): Пользовательская реализация кеша.
         """
-        _cache = cache or CacheQuery(cache_ttl, cache_maxsize, True, non_expired)
         cls_query_table = AsyncQueryTable
-        if TypeCache.remote == _cache.type_cache:
+        if cache and (TypeCache.remote == cache.type_cache):
             cls_query_table = AsyncRemoteQueryTable
-            setattr(self, 'clear_cache', self._clear_cache)
         super().__init__(
             db, cls_query_table, 
             prefix_table, tables, table_schema
         )
-        self._cache = _cache
+        self._cache = cache or CacheQuery(cache_ttl, cache_maxsize, True, non_expired)
     
     async def init(self):
         if TypeCache.remote == self._cache.type_cache:
@@ -216,11 +241,47 @@ class TablesAsync(BaseTables):
         if TypeCache.remote == self._cache.type_cache:
             await self._cache._save_struct_tables(self._tables_struct)
             
-    async def _clear_cache(self):
+    async def query(
+        self, sql: str,
+        cache: bool = False,
+        is_new_data: bool = False
+    ) -> Optional[List[Tuple]]:
+        """Выполнение произвольного SQL запроса.
+        Могут выполняться запросы на изменения и получения данных.
+
+        Args:
+            sql (str): SQL запрос.
+            cache (bool): Работать ли с кешем.
+            is_new_data (bool): Установить новые данные из запроса, если вы работает с кешем.
+
+        Returns:
+            Optional[List[Tuple]]: Результат.
+        """
+        if cache and not is_new_data:
+            if TypeCache.remote == self._cache.type_cache:
+                data = await self._cache._get_data_query(sql)
+            else:
+                data = self._cache._get_data_query(sql)
+            if data:
+                return data
+        async with self._db as db_query:
+            await db_query.execute(sql)
+            data = await db_query.fetchall()
+        if cache:
+            if TypeCache.remote == self._cache.type_cache:
+                await self._cache._save_data_query(sql, data)
+            else:
+                self._cache._save_data_query(sql, data)
+        return data
+            
+    async def clear_cache(self):
         """
             Вызов очищение всего кеша.
-        """        
-        await self._cache.clear()
+        """
+        if TypeCache.remote == self._cache.type_cache:
+            await self._cache.clear()
+        else:
+            self._cache.clear()
     
     async def _fill_tables_pg_struct(self):
         """

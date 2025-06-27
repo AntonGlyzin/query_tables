@@ -22,6 +22,8 @@ class TestDB(BaseTest):
         cls.sqlite = SQLiteQuery(tests_dir / 'test_db.db')
         cls.sqlite_async = AsyncSQLiteQuery(tests_dir / 'test_db.db')
         
+        cls._create_db_ifnotexist_postgres()
+        
         cls.postgres = PostgresQuery(
             DBConfigPg('localhost', 'query_tables', 'postgres', 'postgres')
         )
@@ -56,6 +58,8 @@ class TestDB(BaseTest):
     def tearDownClass(cls):
         try:
             os.remove(tests_dir / 'test_db.db')
+            with cls.postgres as db_query:
+                db_query.execute("DROP TABLE IF EXISTS public.address")
         except Exception:
             logger.info('----Ошибка удаление временной sqlite БД.')
 
