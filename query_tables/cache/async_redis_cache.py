@@ -278,6 +278,16 @@ class AsyncRedisCache(AsyncBaseCache):
         hashkey = self._get_hashkey_query(query)
         async with self._redis as client:
             await client.set(f'{self._key_queries}:{hashkey}', self._encode_data(data))
+            
+    async def _delete_data_query(self, query: str):
+        """Удаляет даннные произвольного запроса из кеша.
+
+        Args:
+            query (str): SQL запрос.
+        """
+        hashkey = self._get_hashkey_query(query)
+        async with self._redis as client:
+            await client.delete(f'{self._key_queries}:{hashkey}')
     
     async def _get_struct_tables(self) -> Optional[Dict[str, List[str]]]:
         """Получение из кеша структуры таблиц.
@@ -324,7 +334,8 @@ class AsyncRedisCache(AsyncBaseCache):
                 if isinstance(o, datetime.datetime):
                     return o.isoformat()
                 elif isinstance(o, memoryview):
-                    return bytes(o).hex()
+                    byte = o.tobytes()
+                    return base64.b64encode(byte).decode('utf-8')
                 elif isinstance(o, tuple):
                     return list(o)
                 elif isinstance(o, bytes):

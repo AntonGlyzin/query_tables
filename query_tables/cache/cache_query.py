@@ -286,6 +286,15 @@ class CacheQuery(BaseCache):
         """
         hashkey = self._get_hashkey_query(query)
         self._cache[hashkey] = data
+        
+    def _delete_data_query(self, query: str):
+        """Удаляет даннные произвольного запроса из кеша.
+
+        Args:
+            query (str): SQL запрос.
+        """        
+        hashkey = self._get_hashkey_query(query)
+        self._cache.pop(hashkey, None)
 
     def _get_index_records(self, hashkey: str, params: Dict) -> Iterator[int]:
         """Получение индексов записей в кеше.

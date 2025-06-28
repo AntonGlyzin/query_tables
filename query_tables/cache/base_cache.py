@@ -142,6 +142,14 @@ class BaseCache(ABC):
         """        
         ...
         
+    def _delete_data_query(self, query: str):
+        """Удаляет даннные произвольного запроса из кеша.
+
+        Args:
+            query (str): SQL запрос.
+        """        
+        ...
+        
     def _get_struct_tables(self) -> Optional[Dict[str, List[str]]]:
         """Получение из кеша структуры таблиц.
 
@@ -285,6 +293,14 @@ class AsyncBaseCache(ABC):
         Args:
             query (str): SQL запрос.
             data (List[Tuple]): Данные.
+        """        
+        ...
+        
+    async def _delete_data_query(self, query: str):
+        """Удаляет даннные произвольного запроса из кеша.
+
+        Args:
+            query (str): SQL запрос.
         """        
         ...
         

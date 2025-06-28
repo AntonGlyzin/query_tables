@@ -58,6 +58,9 @@ class PostgresQuery(BasePostgreDBQuery):
             logger.error(f"Ошибка при подключении к базе данных: {e}")
             return False
         
+    def __del__(self):
+        self.close_pool()
+        
     def close_pool(self):
         """
             Закрывает все соединения в пуле.
@@ -174,10 +177,11 @@ class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
             query (str): SQL запрос.
         """
         try:
-            res = await self._conn.fetch(query)
-            self._res = []
-            for row in res:
-                self._res.append(tuple(row))
+            rows = await self._conn.fetch(query)
+            self._res = [
+                tuple(row)
+                for row in rows
+            ]
         except Exception as e:
             logger.error(f"Ошибка при выполнении SQL-запроса: {e}")
         return self

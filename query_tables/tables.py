@@ -134,7 +134,7 @@ class Tables(BaseTables):
     def query(
         self, sql: str,
         cache: bool = False,
-        is_new_data: bool = False
+        delete_cache: bool = False
     ) -> Optional[List[Tuple]]:
         """Выполнение произвольного SQL запроса.
         Могут выполняться запросы на изменения и получения данных.
@@ -142,12 +142,14 @@ class Tables(BaseTables):
         Args:
             sql (str): SQL запрос.
             cache (bool): Работать ли с кешем.
-            is_new_data (bool): Установить новые данные из запроса, если вы работает с кешем.
+            delete_cache (bool): Удалить данные из кеша, если они там есть.
 
         Returns:
             Optional[List[Tuple]]: Результат.
         """
-        if cache and not is_new_data:
+        if delete_cache:
+            data = self._cache._delete_data_query(sql)
+        if cache:
             data = self._cache._get_data_query(sql)
             if data:
                 return data
@@ -244,20 +246,25 @@ class TablesAsync(BaseTables):
     async def query(
         self, sql: str,
         cache: bool = False,
-        is_new_data: bool = False
+        delete_cache: bool = False
     ) -> Optional[List[Tuple]]:
         """Выполнение произвольного SQL запроса.
         Могут выполняться запросы на изменения и получения данных.
 
         Args:
             sql (str): SQL запрос.
-            cache (bool): Работать ли с кешем.
-            is_new_data (bool): Установить новые данные из запроса, если вы работает с кешем.
+            cache (bool): Получать и устанавливать данные в кеш.
+            delete_cache (bool): Удалить данные из кеша, если они там есть.
 
         Returns:
             Optional[List[Tuple]]: Результат.
         """
-        if cache and not is_new_data:
+        if delete_cache:
+            if TypeCache.remote == self._cache.type_cache:
+                data = await self._cache._delete_data_query(sql)
+            else:
+                data = self._cache._delete_data_query(sql)
+        if cache:
             if TypeCache.remote == self._cache.type_cache:
                 data = await self._cache._get_data_query(sql)
             else:

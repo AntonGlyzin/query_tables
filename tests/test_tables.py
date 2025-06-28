@@ -1001,8 +1001,8 @@ class TestTables(BaseTest):
                 select * from example_data_types
             """
         )
-        self.assertEqual(len(data), 2)
         logger.debug(data)
+        self.assertEqual(len(data), 2)
         
         logger.info("----Получение данных и кеширование")
         data = self.pg_redis_tables.query(
@@ -1010,8 +1010,13 @@ class TestTables(BaseTest):
                 select * from example_data_types
             """, True
         )
-        self.assertEqual(len(data), 2)
         logger.debug(data)
+        self.assertEqual(len(data), 2)
+        
+        logger.info("----Обновить данные в БД")
+        self.pg_redis_tables.query(
+            "update example_data_types set varchar_column='test1' where id=1"
+        )
         
         logger.info("----Получение данных из кеша")
         data = self.pg_redis_tables.query(
@@ -1019,13 +1024,9 @@ class TestTables(BaseTest):
                 select * from example_data_types
             """, True
         )
-        self.assertEqual(len(data), 2)
         logger.debug(data)
-        
-        logger.info("----Установить новые данные в кеш, даже если запрос был закеширован")
-        self.pg_redis_tables.query(
-            "update example_data_types set varchar_column='test1' where id=1"
-        )
+        self.assertEqual(len(data), 2)
+        self.assertEqual(data[0][1], 'First entry')
         
         async def case6_localcache():
             logger.info("-Выполнение асинхронных произвольных запросов с локальным кешем.")
@@ -1035,19 +1036,21 @@ class TestTables(BaseTest):
                     select * from example_data_types
                 """
             )
-            self.assertEqual(len(data), 2)
             logger.debug(data)
+            self.assertEqual(len(data), 2)
+            self.assertEqual(data[1][1], 'test1')
             
-            logger.info("----Получение данных из кеша")
+            logger.info("----Установить данные в кеш")
             data = await self.async_tables_postgres.query(
                 """ 
                     select * from example_data_types
                 """, True
             )
-            self.assertEqual(len(data), 2)
             logger.debug(data)
+            self.assertEqual(len(data), 2)
+            self.assertEqual(data[1][1], 'test1')
             
-            logger.info("----Получить новые данные, даже если запрос был закеширован")
+            logger.info("----Обновить данные в кеще")
             data = await self.async_tables_postgres.query(
                 """ 
                     select * from example_data_types
@@ -1068,6 +1071,12 @@ class TestTables(BaseTest):
             )
             logger.debug(data)
             self.assertEqual(len(data), 2)
+            self.assertEqual(data[1][1], 'test1')
+            
+            logger.info("----Обновить данные в БД")
+            await self.async_tables_postgres_redis.query(
+                "update example_data_types set varchar_column='test2' where id=2"
+            )
             
             logger.info("----Получение данных из кеша")
             data = await self.async_tables_postgres_redis.query(
@@ -1077,21 +1086,32 @@ class TestTables(BaseTest):
             )
             logger.debug(data)
             self.assertEqual(len(data), 2)
-            self.assertEqual(data[0][1], 'First entry')
+            self.assertEqual(data[1][1], 'Second entry')
             
             
-            logger.info("----Получить новые данные, даже если запрос был закеширован")
-            data = await self.async_tables_postgres_redis.query(
+            logger.info("----Обновить кеш")
+            await self.async_tables_postgres_redis.query(
                 """ 
                     select * from example_data_types
                 """, True, True
             )
-            logger.debug(data)
-            self.assertEqual(data[1][1], 'test1')
             
-            logger.info("----Установить новые данные в кеш, даже если запрос был закеширован")
+            
+            logger.info("----Получение данных из кеша")
+            data = await self.async_tables_postgres_redis.query(
+                """ 
+                    select * from example_data_types
+                """, True
+            )
+            logger.debug(data)
+            self.assertEqual(len(data), 2)
+            self.assertEqual(data[1][1], 'test2')
+            
+            logger.info("----Удаление кеша по запросу")
             await self.async_tables_postgres_redis.query(
-                "update example_data_types set varchar_column='test2' where id=2"
+                """ 
+                    select * from example_data_types
+                """, False, True
             )
         
         self.loop.run_until_complete(case6_remotecache())

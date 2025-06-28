@@ -510,7 +510,9 @@ await table.clear_cache()
 
 ## Выполнение сырых SQL запросов.
 
-Возможно ваш запрос большой или вы хотели бы получить данные не из кеша.
+Это может понадобиться, потому как ваш запрос может быть большой или вы хотели бы получить данные не из кеша.
+Для выполнение сырых sql запросов нужно выполнить метод `query` со строкой sql запроса.
+
 ```python
 from query_tables import Tables
 from query_tables.db import DBConfigPg, PostgresQuery
@@ -527,25 +529,36 @@ tables = Tables(postgres, cache=redis_cache)# кеш redis
 rows = tables.query('select * from person')
 ```
 
-Если все же вы хотели бы его закешировать. Получаем данные из БД и сразу их кешируем по sql запросу.
+Если все же вы хотели бы его закешировать. 
 ```python
 query = 'select * from person'
 rows = tables.query(query, cache=True)
 ```
+Это извлекает данные из БД и сразу их кеширует по sql запросу.
 
 В следующий раз получаем данные из кеша:
 ```python
 rows = tables.query(query, cache=True)
 ```
 
-Предположим вы знаете, что в таблице были изменены данные, и вы хотели бы снова получить их из БД в кеш:
+Предположим вы знаете, что в таблице были изменения, и вы хотели бы снова получить их из БД в кеш.
+Для этого нужно установить флаг `delete_cache`. Это удалит старые данные из кеша.
 
 ```python
-rows = tables.query(query, cache=True, is_new_data=True)
+rows = tables.query(query, cache=True, delete_cache=True)
 ```
-Будет обновлен кеш по запросу и получены новые данные.
 
-Для асинхронного режима:
+Если же нужно просто удалить данные из кеша по запросу. 
+```python
+rows = tables.query(query, delete_cache=True)
+```
+
+В следующий раз получаем данные из БД:
+```python
+rows = tables.query(query, cache=True)
+```
+
+Для асинхронного режима добавляем `await`:
 ```python
 from query_tables import TablesAsync
 from query_tables.cache import RedisConnect, AsyncRedisCache
