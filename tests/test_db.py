@@ -2,6 +2,7 @@ from settings import logger, BaseTest, tests_dir
 import shutil
 import os
 import asyncio
+from markupsafe import escape
 from query_tables.db import (
     SQLiteQuery, AsyncSQLiteQuery, 
     DBConfigPg, PostgresQuery, AsyncPostgresQuery,
@@ -75,6 +76,30 @@ class TestDB(BaseTest):
         data = db_query.fetchall()
         db.close()
         self.assertEqual(len(data), 5)
+        
+        logger.info('----обойти такое "экранирование" через Unicode-символы.')
+        new_val = escape("1\u0027; DROP TABLE users; --")
+        with db as db_query:
+            db_query.execute(f"select * from address where street = '{new_val}'")
+            logger.debug(f"select * from address where street = '{new_val}'")
+            data = db_query.fetchall()
+            self.assertEqual(len(data), 0)
+            
+        logger.info('----обойти такое "экранирование" через слеши.')
+        new_val = escape("1\'; DROP TABLE users; --")
+        with db as db_query:
+            db_query.execute(f"select * from address where street = '{new_val}'")
+            logger.debug(f"select * from address where street = '{new_val}'")
+            data = db_query.fetchall()
+            self.assertEqual(len(data), 0)
+        
+        logger.info('----обойти такое "экранирование" через двойные кавычки.')
+        new_val = escape('1"; DROP TABLE users; --')
+        with db as db_query:
+            db_query.execute(f"select * from address where street = '{new_val}'")
+            logger.debug(f"select * from address where street = '{new_val}'")
+            data = db_query.fetchall()
+            self.assertEqual(len(data), 0)
         
         logger.info('----Вставка в БД.')
         with db as db_query:

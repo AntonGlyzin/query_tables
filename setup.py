@@ -18,7 +18,8 @@ setup(
         'aiosqlite<=0.21.0',
         'psycopg2<=2.9.10',
         'asyncpg<=0.30.0',
-        'redis<=6.2.0'
+        'redis<=6.2.0',
+        'MarkupSafe<=3.0.2'
     ],
     python_requires=">=3.9",
     author='Антон Глызин',

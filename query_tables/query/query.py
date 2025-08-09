@@ -1,3 +1,4 @@
+from markupsafe import escape
 from typing import Union, Any, List, Optional, Dict
 from query_tables.query import BaseJoin, BaseQuery
 from query_tables.exceptions import (
@@ -408,11 +409,12 @@ class Query(BaseQuery):
                 self._convert_simple_format_data(item) for item in value
             ]
             return "({})".format(','.join(map(str, value)))
-        elif isinstance(value, (int, float)):
-            return f'{value}'
-        elif isinstance(value, str):
-            return "'{}'".format(value)
         elif isinstance(value, bool):
             ret_value = 'true' if value else 'false'
             return ret_value
+        elif isinstance(value, (int, float)):
+            return f'{value}'
+        elif isinstance(value, str):
+            new_value = escape(value)
+            return f"'{new_value}'"
         raise ErrorConvertDataQuery(value)

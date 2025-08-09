@@ -1,6 +1,7 @@
 import os
 from settings import logger, BaseTest, tests_dir
 from query_tables.query import Query, Join, LeftJoin
+from query_tables.exceptions import ErrorConvertDataQuery
 import sqlite3
 import shutil
 
@@ -34,6 +35,25 @@ class TestQuery(BaseTest):
     
     def test_case_1(self):
         logger.info('1. Запросы на получение записей.')
+        
+        logger.info('----обойти такое "экранирование" через Unicode-символы.')
+        query = Query(*self.person).filter(name="1\'; DROP TABLE users; --").get()
+        logger.debug(query)
+        res = self.cursor.execute(query).fetchall()
+        self.assertEqual(len(res), 0)
+        
+        logger.info('----обойти такое "экранирование" через двойные кавычки.')
+        query = Query(*self.person).filter(name='1"; DROP TABLE users; --').get()
+        logger.debug(query)
+        res = self.cursor.execute(query).fetchall()
+        self.assertEqual(len(res), 0)
+        
+        logger.info('----обойти такое "экранирование" через HEX-формате.')
+        with self.assertRaises(ErrorConvertDataQuery):
+            hex_payload = "27204f5220313d313b202d2d".encode()
+            query = Query(*self.person).filter(id=hex_payload).get()
+            logger.debug(query)
+        
         logger.info('----Получение по идентификатору из одной таблице.')
         query = Query(*self.person).filter(id=2).get()
         logger.debug(query)

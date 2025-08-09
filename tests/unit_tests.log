@@ -1,447 +1,464 @@
-2025-06-28 07:56:25,408 - root - INFO - ======================================================================
-2025-06-28 07:56:25,409 - root - INFO - Выполнение тестов для TestCacheQuery.
-2025-06-28 07:56:25,409 - root - INFO - ======================================================================
-2025-06-28 07:56:25,409 - root - INFO - 1. Получение и удаление данных из кеша по sql запросу.
-2025-06-28 07:56:25,410 - root - INFO - ----Запись в кеш.
-2025-06-28 07:56:25,410 - root - INFO - ----Чтение записей из кеша.
-2025-06-28 07:56:25,411 - root - INFO - ----Удаление закешированные записи связанные с таблицей person.
-2025-06-28 07:56:25,411 - root - INFO - ----Удаление закешированную запись по sql запросу.
-2025-06-28 07:56:25,411 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:25,411 - root - INFO - 2. Попытка удалить кеш из потока 2 при попытки чтения из потока 1.
-2025-06-28 07:56:25,412 - root - INFO - ----Чтение будет 3 секунды. Запуск удаление через 1 секунду.
-2025-06-28 07:56:28,413 - root - INFO - ----Порядок выполнений операций не нарушен.
-2025-06-28 07:56:28,414 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:28,415 - root - INFO - 3. Асинхроность.
-2025-06-28 07:56:28,415 - asyncio - DEBUG - Using proactor: IocpProactor
-2025-06-28 07:56:28,418 - root - INFO - ----Запись в кеш.
-2025-06-28 07:56:28,419 - root - INFO - ----Чтение записей из кеша.
-2025-06-28 07:56:28,420 - root - INFO - ----Удаление закешированные записи связанные с таблицей person.
-2025-06-28 07:56:28,421 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:28,422 - root - INFO - 4. Изменение единичной записи в кеше по ссылки.
-2025-06-28 07:56:28,423 - root - INFO - ----Запись в кеш.
-2025-06-28 07:56:28,423 - root - INFO - ----Изменение во внутренней функции.
-2025-06-28 07:56:28,424 - root - INFO - ----Update словаря.
-2025-06-28 07:56:28,427 - root - INFO - ----Поиск и обновление по индексу.
-2025-06-28 07:56:28,428 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:28,428 - root - INFO - 5. Получение и изменение данных в кеше по фильтрации.
-2025-06-28 07:56:28,429 - root - INFO - ----Запись в кеш.
-2025-06-28 07:56:28,429 - root - INFO - ----Получение по фильтрации.
-2025-06-28 07:56:28,430 - root - INFO - ----Обновление записи по фильтрации.
-2025-06-28 07:56:28,431 - root - INFO - ----Удаление записи по фильтрации.
-2025-06-28 07:56:28,432 - root - INFO - ----Добавление записи в кеш.
-2025-06-28 07:56:28,433 - root - INFO - ----Добавление записи с не правильными полями в кеш.
-2025-06-28 07:56:28,434 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:28,435 - root - INFO - ======================================================================
-2025-06-28 07:56:28,436 - root - INFO - Выполнение тестов для TestDB.
-2025-06-28 07:56:28,437 - root - INFO - ======================================================================
-2025-06-28 07:56:28,635 - root - INFO - 1. Проверка для SQLiteQuery.
-2025-06-28 07:56:28,635 - root - INFO - ----Получение из БД.
-2025-06-28 07:56:28,641 - root - INFO - ----Вставка в БД.
-2025-06-28 07:56:28,661 - root - INFO - ----Обновление в БД.
-2025-06-28 07:56:28,677 - root - INFO - ----Удаление из БД.
-2025-06-28 07:56:28,693 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:28,695 - root - INFO - 2. Проверка для AsyncSQLiteQuery.
-2025-06-28 07:56:28,696 - asyncio - DEBUG - Using proactor: IocpProactor
-2025-06-28 07:56:28,698 - root - INFO - ----Получение из БД.
-2025-06-28 07:56:28,706 - root - INFO - ----Вставка в БД.
-2025-06-28 07:56:28,764 - root - INFO - ----Обновление в БД.
-2025-06-28 07:56:28,787 - root - INFO - ----Удаление из БД.
-2025-06-28 07:56:28,808 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:28,809 - root - INFO - 3. Проверка для PostgresQuery.
-2025-06-28 07:56:28,810 - root - INFO - ----Получение из БД.
-2025-06-28 07:56:28,812 - root - INFO - ----Вставка в БД.
-2025-06-28 07:56:28,814 - root - INFO - ----Обновление в БД.
-2025-06-28 07:56:28,815 - root - INFO - ----Удаление из БД.
-2025-06-28 07:56:28,817 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:28,817 - root - INFO - 4. Проверка для AsyncPostgresQuery.
-2025-06-28 07:56:28,818 - asyncio - DEBUG - Using proactor: IocpProactor
-2025-06-28 07:56:28,819 - root - INFO - ----Получение из БД.
-2025-06-28 07:56:29,137 - root - INFO - ----Вставка в БД.
-2025-06-28 07:56:29,501 - root - INFO - ----Обновление в БД.
-2025-06-28 07:56:29,691 - root - INFO - ----Удаление из БД.
-2025-06-28 07:56:30,116 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:30,129 - root - INFO - ======================================================================
-2025-06-28 07:56:30,129 - root - INFO - Выполнение тестов для TestQuery.
-2025-06-28 07:56:30,130 - root - INFO - ======================================================================
-2025-06-28 07:56:30,135 - root - INFO - 1. Запросы на получение записей.
-2025-06-28 07:56:30,135 - root - INFO - ----Получение по идентификатору из одной таблице.
-2025-06-28 07:56:30,136 - root - DEBUG - select person.id, person.login, person.name, person.ref_address, person.age from person where person.id = 2
-2025-06-28 07:56:30,139 - root - INFO - ----Получение несколько записей по диапазону.
-2025-06-28 07:56:30,140 - root - DEBUG - select person.id, person.login, person.name, person.ref_address, person.age from person where person.age between 25 and 31
-2025-06-28 07:56:30,143 - root - INFO - ----Получение записей с join таблицей.
-2025-06-28 07:56:30,144 - root - DEBUG - select person.id, person.login, person.name, person.ref_address, person.age, address.id, address.street, address.building from person join (select address.id, address.street, address.building from address) as address on address.id = person.ref_address where person.age between 25 and 31
-2025-06-28 07:56:30,145 - root - INFO - ----Получение записей по текстовой дате.
-2025-06-28 07:56:30,146 - root - DEBUG - select company.id, company.name, company.ref_address, company.registration from company where company.registration between '2021-02-20' and '2021-04-20'
-2025-06-28 07:56:30,147 - root - INFO - ----Вложенные join запросы.
-2025-06-28 07:56:30,148 - root - DEBUG - select address.id, address.street, address.building, employees.id, employees.ref_person, employees.ref_company, employees.hired, company.id, company.name, company.ref_address, company.registration, compony_addr.id, compony_addr.street, compony_addr.building, person.id, person.name, person.age from person join (select address.id, address.street, address.building from address) as address on address.id = person.ref_address left join (select employees.id, employees.ref_person, employees.ref_company, employees.hired from employees join (select company.id, company.name, company.ref_address, company.registration from company join (select address.id, address.street, address.building from address) as compony_addr on compony_addr.id = company.ref_address where company.registration between '2020-01-02' and '2020-01-06') as company on company.id = employees.ref_company join (select address.id, address.street, address.building from address) as compony_addr on compony_addr.id = company.ref_address) as employees on employees.ref_person = person.id join (select company.id, company.name, company.ref_address, company.registration from company join (select address.id, address.street, address.building from address) as compony_addr on compony_addr.id = company.ref_address where company.registration between '2020-01-02' and '2020-01-06') as company on company.id = employees.ref_company join (select address.id, address.street, address.building from address) as compony_addr on compony_addr.id = company.ref_address where person.id = 2 order by person.age desc
-2025-06-28 07:56:30,149 - root - INFO - ----Изменение количества выводимых полей.
-2025-06-28 07:56:30,150 - root - INFO - ----Мапинг полей в join запросах.
-2025-06-28 07:56:30,151 - root - INFO - ----Мапинг полей в одной таблице.
-2025-06-28 07:56:30,152 - root - INFO - ----Left join запрос при отсутсвие записи в таблице.
-2025-06-28 07:56:30,153 - root - DEBUG - select person.id, person.login, person.name, person.ref_address, person.age, employees.id, employees.ref_person, employees.ref_company, employees.hired, employees.dismissed from person left join (select employees.id, employees.ref_person, employees.ref_company, employees.hired, employees.dismissed from employees) as employees on employees.ref_person = person.id where person.id = 4
-2025-06-28 07:56:30,160 - root - INFO - ----Поиск по части имени.
-2025-06-28 07:56:30,161 - root - DEBUG - select person.id, person.login, person.name, person.ref_address, person.age from person where person.name like '%%4'
-2025-06-28 07:56:30,162 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:30,163 - root - INFO - 2. Запросы на изменения.
-2025-06-28 07:56:30,163 - root - INFO - ----Update с фильтрацией.
-2025-06-28 07:56:30,165 - root - DEBUG - update person set age = 34, name = 'Tony 4' where person.id = 4
-2025-06-28 07:56:30,167 - root - INFO - ----Insert одной записи.
-2025-06-28 07:56:30,168 - root - DEBUG - insert into person (login, name, age, ref_address) values ('fer0', 'Anton 5', 36, 1)
-2025-06-28 07:56:30,169 - root - INFO - ----Insert несколько записей.
-2025-06-28 07:56:30,172 - root - DEBUG - insert into person (login, name, age, ref_address) values ('fer0', 'Anton 5', 36, 1), ('fdgdf', 'Anton 6', 37, 2)
-2025-06-28 07:56:30,173 - root - INFO - ----Удаление записи.
-2025-06-28 07:56:30,175 - root - DEBUG - delete from person  where person.id = 6
-2025-06-28 07:56:30,175 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:30,180 - root - INFO - ======================================================================
-2025-06-28 07:56:30,180 - root - INFO - Выполнение тестов для TestRedisQuery.
-2025-06-28 07:56:30,182 - root - INFO - ======================================================================
-2025-06-28 07:56:30,185 - asyncio - DEBUG - Using proactor: IocpProactor
-2025-06-28 07:56:30,186 - root - INFO - 1. Получение и удаление данных из кеша по sql запросу.
-2025-06-28 07:56:30,186 - root - INFO - ----Запись в кеш.
-2025-06-28 07:56:30,189 - root - INFO - ----Чтение записей из кеша.
-2025-06-28 07:56:30,192 - root - INFO - ----Удаление закешированные записи связанные с таблицей person.
-2025-06-28 07:56:30,197 - root - INFO - ----Удаление закешированную запись по sql запросу.
-2025-06-28 07:56:30,199 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:30,201 - root - INFO - 3. Асинхронный кеш редис.
-2025-06-28 07:56:30,201 - root - INFO -  Получение и удаление данных из кеша по sql запросу.
-2025-06-28 07:56:30,202 - root - INFO - ----Запись в кеш.
-2025-06-28 07:56:30,214 - root - INFO - ----Чтение записей из кеша.
-2025-06-28 07:56:30,223 - root - INFO - ----Удаление закешированные записи связанные с таблицей person.
-2025-06-28 07:56:30,240 - root - INFO - ----Удаление закешированную запись по sql запросу.
-2025-06-28 07:56:30,248 - root - INFO -  Получение и изменение данных в кеше по фильтрации.
-2025-06-28 07:56:30,249 - root - INFO - ----Запись в кеш.
-2025-06-28 07:56:30,255 - root - INFO - ----Получение по фильтрации.
-2025-06-28 07:56:30,260 - root - INFO - ----Обновление записи по фильтрации.
-2025-06-28 07:56:30,268 - root - INFO - ----Удаление записи по фильтрации.
-2025-06-28 07:56:30,284 - root - INFO - ----Добавление записи в кеш.
-2025-06-28 07:56:30,296 - root - INFO - ----Добавление записи с не правильными полями в кеш.
-2025-06-28 07:56:30,301 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:30,304 - root - INFO - ======================================================================
-2025-06-28 07:56:30,305 - root - INFO - Выполнение тестов для TestTables.
-2025-06-28 07:56:30,315 - root - INFO - ======================================================================
-2025-06-28 07:56:30,322 - asyncio - DEBUG - Using proactor: IocpProactor
-2025-06-28 07:56:31,582 - root - INFO - 1. Выполнение запросов на получение записей.
-2025-06-28 07:56:31,583 - root - INFO - -С отключенным кешем.
-2025-06-28 07:56:31,584 - root - INFO - ----Проверка доступа к кешу.
-2025-06-28 07:56:31,585 - root - INFO - -----Доступ к кешу закрыт.
-2025-06-28 07:56:31,586 - root - INFO - ----Получение записи по ИД.
-2025-06-28 07:56:31,588 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:31,588 - root - INFO - ----Получение записи по части имени.
-2025-06-28 07:56:31,592 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:31,593 - root - INFO - ----Получение записи по вхождению.
-2025-06-28 07:56:31,595 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:31,596 - root - INFO - ----Получение записи по диапазону.
-2025-06-28 07:56:31,597 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:31,598 - root - INFO - ----Получение записи по больще или равно.
-2025-06-28 07:56:31,600 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:31,600 - root - INFO - ----Получение записи по диапазону дат.
-2025-06-28 07:56:31,603 - root - DEBUG - [{'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05'}]
-2025-06-28 07:56:31,605 - root - INFO - ----Сортировка и лимит записей.
-2025-06-28 07:56:31,609 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:31,610 - root - INFO - ----Получение записей с join таблицей.
-2025-06-28 07:56:31,612 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}]
-2025-06-28 07:56:31,613 - root - INFO - ----Получение записей с join таблицей в которой нет записей.
-2025-06-28 07:56:31,614 - root - DEBUG - []
-2025-06-28 07:56:31,615 - root - INFO - ----Получение записей с left join таблицей в которой нет записей.
-2025-06-28 07:56:31,617 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35, 'employees.id': None, 'employees.ref_person': None, 'employees.ref_company': None, 'employees.hired': None, 'employees.dismissed': None}]
-2025-06-28 07:56:31,618 - root - INFO - ----Вложенные join запросы с фильтрацией и выбором полей.
-2025-06-28 07:56:31,622 - root - DEBUG - [{'address.id': 2, 'address.street': 'Наумова', 'address.building': 33, 'employees.id': 2, 'employees.ref_person': 2, 'employees.ref_company': 2, 'employees.hired': 1612588507, 'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05', 'compony_addr.id': 4, 'compony_addr.street': 'Приморская', 'compony_addr.building': 8, 'person.id': 2, 'person.name': 'Anton 2', 'person.age': 30}]
-2025-06-28 07:56:31,623 - root - INFO - -С временным кешем.
-2025-06-28 07:56:31,625 - root - INFO - ----Проверка доступа к кешу.
-2025-06-28 07:56:31,626 - root - INFO - -----Доступ к кешу открыт.
-2025-06-28 07:56:31,626 - root - INFO - ----Получение записи по ИД.
-2025-06-28 07:56:31,629 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:31,629 - root - INFO - ----Получение записи по части имени.
-2025-06-28 07:56:31,631 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:31,632 - root - INFO - ----Получение записи по вхождению.
-2025-06-28 07:56:31,637 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:31,638 - root - INFO - ----Получение записи по диапазону.
-2025-06-28 07:56:31,642 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:31,643 - root - INFO - ----Получение записи по больще или равно.
-2025-06-28 07:56:31,645 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:31,645 - root - INFO - ----Получение записи по диапазону дат.
-2025-06-28 07:56:31,647 - root - DEBUG - [{'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05'}]
-2025-06-28 07:56:31,647 - root - INFO - ----Сортировка и лимит записей.
-2025-06-28 07:56:31,649 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:31,651 - root - INFO - ----Получение записей с join таблицей.
-2025-06-28 07:56:31,652 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}]
-2025-06-28 07:56:31,653 - root - INFO - ----Получение записей с join таблицей в которой нет записей.
-2025-06-28 07:56:31,654 - root - DEBUG - []
-2025-06-28 07:56:31,655 - root - INFO - ----Получение записей с left join таблицей в которой нет записей.
-2025-06-28 07:56:31,656 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35, 'employees.id': None, 'employees.ref_person': None, 'employees.ref_company': None, 'employees.hired': None, 'employees.dismissed': None}]
-2025-06-28 07:56:31,659 - root - INFO - ----Вложенные join запросы с фильтрацией и выбором полей.
-2025-06-28 07:56:31,661 - root - DEBUG - [{'address.id': 2, 'address.street': 'Наумова', 'address.building': 33, 'employees.id': 2, 'employees.ref_person': 2, 'employees.ref_company': 2, 'employees.hired': 1612588507, 'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05', 'compony_addr.id': 4, 'compony_addr.street': 'Приморская', 'compony_addr.building': 8, 'person.id': 2, 'person.name': 'Anton 2', 'person.age': 30}]
-2025-06-28 07:56:31,662 - root - INFO - -С постоянным кешем.
-2025-06-28 07:56:31,662 - root - INFO - ----Проверка доступа к кешу.
-2025-06-28 07:56:31,663 - root - INFO - -----Доступ к кешу открыт.
-2025-06-28 07:56:31,664 - root - INFO - ----Получение записи по ИД.
-2025-06-28 07:56:31,669 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:31,669 - root - INFO - ----Получение записи по части имени.
-2025-06-28 07:56:31,671 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:31,671 - root - INFO - ----Получение записи по вхождению.
-2025-06-28 07:56:31,672 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:31,673 - root - INFO - ----Получение записи по диапазону.
-2025-06-28 07:56:31,677 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:31,677 - root - INFO - ----Получение записи по больще или равно.
-2025-06-28 07:56:31,679 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:31,679 - root - INFO - ----Получение записи по диапазону дат.
-2025-06-28 07:56:31,683 - root - DEBUG - [{'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05'}]
-2025-06-28 07:56:31,683 - root - INFO - ----Сортировка и лимит записей.
-2025-06-28 07:56:31,698 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:31,698 - root - INFO - ----Получение записей с join таблицей.
-2025-06-28 07:56:31,700 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}]
-2025-06-28 07:56:31,700 - root - INFO - ----Получение записей с join таблицей в которой нет записей.
-2025-06-28 07:56:31,702 - root - DEBUG - []
-2025-06-28 07:56:31,702 - root - INFO - ----Получение записей с left join таблицей в которой нет записей.
-2025-06-28 07:56:31,704 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35, 'employees.id': None, 'employees.ref_person': None, 'employees.ref_company': None, 'employees.hired': None, 'employees.dismissed': None}]
-2025-06-28 07:56:31,705 - root - INFO - ----Вложенные join запросы с фильтрацией и выбором полей.
-2025-06-28 07:56:31,709 - root - DEBUG - [{'address.id': 2, 'address.street': 'Наумова', 'address.building': 33, 'employees.id': 2, 'employees.ref_person': 2, 'employees.ref_company': 2, 'employees.hired': 1612588507, 'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05', 'compony_addr.id': 4, 'compony_addr.street': 'Приморская', 'compony_addr.building': 8, 'person.id': 2, 'person.name': 'Anton 2', 'person.age': 30}]
-2025-06-28 07:56:31,710 - root - INFO - -Кеш redis.
-2025-06-28 07:56:31,712 - root - INFO - ----Проверка доступа к кешу.
-2025-06-28 07:56:31,714 - root - INFO - -----Доступ к кешу открыт.
-2025-06-28 07:56:31,714 - root - INFO - ----Получение записи по ИД.
-2025-06-28 07:56:31,717 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:31,718 - root - INFO - ----Получение записи по части имени.
-2025-06-28 07:56:31,721 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:31,721 - root - INFO - ----Получение записи по вхождению.
-2025-06-28 07:56:31,726 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:31,727 - root - INFO - ----Получение записи по диапазону.
-2025-06-28 07:56:31,731 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:31,731 - root - INFO - ----Получение записи по больще или равно.
-2025-06-28 07:56:31,734 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:31,734 - root - INFO - ----Получение записи по диапазону дат.
-2025-06-28 07:56:31,737 - root - DEBUG - [{'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05'}]
-2025-06-28 07:56:31,738 - root - INFO - ----Сортировка и лимит записей.
-2025-06-28 07:56:31,744 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:31,745 - root - INFO - ----Получение записей с join таблицей.
-2025-06-28 07:56:31,749 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}]
-2025-06-28 07:56:31,749 - root - INFO - ----Получение записей с join таблицей в которой нет записей.
-2025-06-28 07:56:31,754 - root - DEBUG - []
-2025-06-28 07:56:31,754 - root - INFO - ----Получение записей с left join таблицей в которой нет записей.
-2025-06-28 07:56:31,762 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35, 'employees.id': None, 'employees.ref_person': None, 'employees.ref_company': None, 'employees.hired': None, 'employees.dismissed': None}]
-2025-06-28 07:56:31,763 - root - INFO - ----Вложенные join запросы с фильтрацией и выбором полей.
-2025-06-28 07:56:31,768 - root - DEBUG - [{'address.id': 2, 'address.street': 'Наумова', 'address.building': 33, 'employees.id': 2, 'employees.ref_person': 2, 'employees.ref_company': 2, 'employees.hired': 1612588507, 'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05', 'compony_addr.id': 4, 'compony_addr.street': 'Приморская', 'compony_addr.building': 8, 'person.id': 2, 'person.name': 'Anton 2', 'person.age': 30}]
-2025-06-28 07:56:31,769 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:31,770 - root - INFO - 2. Работа с кешем данных через запросы.
-2025-06-28 07:56:31,770 - root - INFO - -С временным кешем.
-2025-06-28 07:56:31,771 - root - INFO - ----Получение единичной записи.
-2025-06-28 07:56:31,772 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:31,773 - root - INFO - ----Получение нескольких записей.
-2025-06-28 07:56:31,776 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
-2025-06-28 07:56:31,777 - root - INFO - ----Получение записей по фильтру внутри кеша.
-2025-06-28 07:56:31,777 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
-2025-06-28 07:56:31,778 - root - INFO - ----Изменение записей по фильтру внутри кеша.
-2025-06-28 07:56:31,779 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
-2025-06-28 07:56:31,780 - root - INFO - ----Добавление записей в кеш.
-2025-06-28 07:56:31,780 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 6, 'person.login': 'qqq', 'person.name': 'Anton 6', 'person.ref_address': 0, 'person.age': 0, 'address.id': 6, 'address.street': 'ytutyu', 'address.building': 567}]
-2025-06-28 07:56:31,781 - root - INFO - ----Удаление записи из кеша.
-2025-06-28 07:56:31,782 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
-2025-06-28 07:56:31,782 - root - INFO - ----Удаление кеша привязаного к запросу.
-2025-06-28 07:56:31,783 - root - DEBUG - []
-2025-06-28 07:56:31,784 - root - INFO - ----Удаление кеша по таблице при изменение данных в таблице.
-2025-06-28 07:56:31,796 - root - INFO - ----Удаление кеша по таблице по запросу.
-2025-06-28 07:56:31,802 - root - INFO - ----Удаление кеша по таблице при изменение данных.
-2025-06-28 07:56:31,812 - root - INFO - -С постоянным кешем.
-2025-06-28 07:56:31,813 - root - INFO - ----Получение единичной записи.
-2025-06-28 07:56:31,816 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:31,816 - root - INFO - ----Получение нескольких записей.
-2025-06-28 07:56:31,818 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
-2025-06-28 07:56:31,818 - root - INFO - ----Получение записей по фильтру внутри кеша.
-2025-06-28 07:56:31,819 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
-2025-06-28 07:56:31,819 - root - INFO - ----Изменение записей по фильтру внутри кеша.
-2025-06-28 07:56:31,820 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
-2025-06-28 07:56:31,821 - root - INFO - ----Добавление записей в кеш.
-2025-06-28 07:56:31,822 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}, {'person.id': 6, 'person.login': 'qqq', 'person.name': 'Anton 6', 'person.ref_address': 0, 'person.age': 0, 'address.id': 6, 'address.street': 'ytutyu', 'address.building': 567}]
-2025-06-28 07:56:31,827 - root - INFO - ----Удаление записи из кеша.
-2025-06-28 07:56:31,827 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
-2025-06-28 07:56:31,828 - root - INFO - ----Удаление кеша привязаного к запросу.
-2025-06-28 07:56:31,829 - root - DEBUG - []
-2025-06-28 07:56:31,829 - root - INFO - ----Удаление кеша по таблице при изменение данных в таблице.
-2025-06-28 07:56:31,839 - root - INFO - ----Удаление кеша по таблице по запросу.
-2025-06-28 07:56:31,847 - root - INFO - ----Удаление кеша по таблице при изменение данных.
-2025-06-28 07:56:31,852 - root - INFO - -Кеш redis.
-2025-06-28 07:56:31,852 - root - INFO - ----Получение единичной записи.
-2025-06-28 07:56:31,856 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:31,857 - root - INFO - ----Получение нескольких записей.
-2025-06-28 07:56:31,862 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
-2025-06-28 07:56:31,862 - root - INFO - ----Получение записей по фильтру внутри кеша.
-2025-06-28 07:56:31,864 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
-2025-06-28 07:56:31,864 - root - INFO - ----Изменение записей по фильтру внутри кеша.
-2025-06-28 07:56:31,866 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
-2025-06-28 07:56:31,866 - root - INFO - ----Добавление записей в кеш.
-2025-06-28 07:56:31,868 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}, {'person.id': 6, 'person.login': 'qqq', 'person.name': 'Anton 6', 'person.ref_address': 0, 'person.age': 0, 'address.id': 6, 'address.street': 'ytutyu', 'address.building': 567}]
-2025-06-28 07:56:31,869 - root - INFO - ----Удаление записи из кеша.
-2025-06-28 07:56:31,872 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
-2025-06-28 07:56:31,877 - root - INFO - ----Удаление кеша привязаного к запросу.
-2025-06-28 07:56:31,880 - root - DEBUG - []
-2025-06-28 07:56:31,880 - root - INFO - ----Удаление кеша по таблице при изменение данных в таблице.
-2025-06-28 07:56:31,901 - root - INFO - ----Удаление кеша по таблице по запросу.
-2025-06-28 07:56:31,919 - root - INFO - ----Удаление кеша по таблице при изменение данных.
-2025-06-28 07:56:31,935 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:31,936 - root - INFO - 3. Изменение данных в БД.
-2025-06-28 07:56:31,936 - root - INFO - -С кешем.
-2025-06-28 07:56:31,937 - root - INFO - ----Встатвка данных в БД.
-2025-06-28 07:56:31,946 - root - INFO - ----Изменение данных в БД.
-2025-06-28 07:56:31,956 - root - INFO - ----Удаление данных из БД.
-2025-06-28 07:56:31,966 - root - INFO - -Без кеша.
-2025-06-28 07:56:31,966 - root - INFO - ----Встатвка данных в БД.
-2025-06-28 07:56:31,976 - root - INFO - ----Изменение данных в БД.
-2025-06-28 07:56:31,985 - root - INFO - ----Удаление данных из БД.
-2025-06-28 07:56:31,994 - root - INFO - -Кеш redis.
-2025-06-28 07:56:31,994 - root - INFO - ----Встатвка данных в БД.
-2025-06-28 07:56:32,005 - root - INFO - ----Изменение данных в БД.
-2025-06-28 07:56:32,016 - root - INFO - ----Удаление данных из БД.
-2025-06-28 07:56:32,027 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:32,028 - root - INFO - 4. Асинхроность.
-2025-06-28 07:56:32,028 - root - INFO - Выполнение запросов на получение записей.
-2025-06-28 07:56:32,029 - root - INFO - -Без кеша.
-2025-06-28 07:56:32,030 - root - INFO - ----Получение записи по ИД.
-2025-06-28 07:56:32,033 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:32,034 - root - INFO - ----Получение записи по части имени.
-2025-06-28 07:56:32,037 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:32,037 - root - INFO - ----Получение записи по вхождению.
-2025-06-28 07:56:32,042 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:32,043 - root - INFO - ----Получение записи по диапазону.
-2025-06-28 07:56:32,048 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:32,048 - root - INFO - ----Получение записи по больще или равно.
-2025-06-28 07:56:32,051 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:32,052 - root - INFO - ----Получение записи по диапазону дат.
-2025-06-28 07:56:32,055 - root - DEBUG - [{'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05'}]
-2025-06-28 07:56:32,055 - root - INFO - ----Сортировка и лимит записей.
-2025-06-28 07:56:32,060 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:32,061 - root - INFO - ----Получение записей с join таблицей.
-2025-06-28 07:56:32,064 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}]
-2025-06-28 07:56:32,064 - root - INFO - ----Получение записей с join таблицей в которой нет записей.
-2025-06-28 07:56:32,067 - root - DEBUG - []
-2025-06-28 07:56:32,067 - root - INFO - ----Получение записей с left join таблицей в которой нет записей.
-2025-06-28 07:56:32,070 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35, 'employees.id': None, 'employees.ref_person': None, 'employees.ref_company': None, 'employees.hired': None, 'employees.dismissed': None}]
-2025-06-28 07:56:32,070 - root - INFO - ----Вложенные join запросы с фильтрацией и выбором полей.
-2025-06-28 07:56:32,075 - root - DEBUG - [{'address.id': 2, 'address.street': 'Наумова', 'address.building': 33, 'employees.id': 2, 'employees.ref_person': 2, 'employees.ref_company': 2, 'employees.hired': 1612588507, 'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05', 'compony_addr.id': 4, 'compony_addr.street': 'Приморская', 'compony_addr.building': 8, 'person.id': 2, 'person.name': 'Anton 2', 'person.age': 30}]
-2025-06-28 07:56:32,084 - root - INFO - -С постоянным кешем.
-2025-06-28 07:56:32,084 - root - INFO - ----Получение записи по ИД.
-2025-06-28 07:56:32,087 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:32,088 - root - INFO - ----Получение записи по части имени.
-2025-06-28 07:56:32,094 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:32,094 - root - INFO - ----Получение записи по вхождению.
-2025-06-28 07:56:32,097 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:32,098 - root - INFO - ----Получение записи по диапазону.
-2025-06-28 07:56:32,101 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:32,101 - root - INFO - ----Получение записи по больще или равно.
-2025-06-28 07:56:32,105 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:32,105 - root - INFO - ----Получение записи по диапазону дат.
-2025-06-28 07:56:32,112 - root - DEBUG - [{'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05'}]
-2025-06-28 07:56:32,112 - root - INFO - ----Сортировка и лимит записей.
-2025-06-28 07:56:32,116 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:32,116 - root - INFO - ----Получение записей с join таблицей.
-2025-06-28 07:56:32,120 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}]
-2025-06-28 07:56:32,121 - root - INFO - ----Получение записей с join таблицей в которой нет записей.
-2025-06-28 07:56:32,129 - root - DEBUG - []
-2025-06-28 07:56:32,130 - root - INFO - ----Получение записей с left join таблицей в которой нет записей.
-2025-06-28 07:56:32,134 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35, 'employees.id': None, 'employees.ref_person': None, 'employees.ref_company': None, 'employees.hired': None, 'employees.dismissed': None}]
-2025-06-28 07:56:32,135 - root - INFO - ----Вложенные join запросы с фильтрацией и выбором полей.
-2025-06-28 07:56:32,140 - root - DEBUG - [{'address.id': 2, 'address.street': 'Наумова', 'address.building': 33, 'employees.id': 2, 'employees.ref_person': 2, 'employees.ref_company': 2, 'employees.hired': 1612588507, 'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05', 'compony_addr.id': 4, 'compony_addr.street': 'Приморская', 'compony_addr.building': 8, 'person.id': 2, 'person.name': 'Anton 2', 'person.age': 30}]
-2025-06-28 07:56:32,143 - root - INFO - -С redis кешем.
-2025-06-28 07:56:32,144 - root - INFO - ----Получение записи по ИД.
-2025-06-28 07:56:32,155 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:32,155 - root - INFO - ----Получение записи по части имени.
-2025-06-28 07:56:32,172 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:32,172 - root - INFO - ----Получение записи по вхождению.
-2025-06-28 07:56:32,185 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:32,186 - root - INFO - ----Получение записи по диапазону.
-2025-06-28 07:56:32,199 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:32,199 - root - INFO - ----Получение записи по больще или равно.
-2025-06-28 07:56:32,211 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:32,211 - root - INFO - ----Получение записи по диапазону дат.
-2025-06-28 07:56:32,225 - root - DEBUG - [{'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05'}]
-2025-06-28 07:56:32,226 - root - INFO - ----Сортировка и лимит записей.
-2025-06-28 07:56:32,236 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
-2025-06-28 07:56:32,237 - root - INFO - ----Получение записей с join таблицей.
-2025-06-28 07:56:32,249 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}]
-2025-06-28 07:56:32,249 - root - INFO - ----Получение записей с join таблицей в которой нет записей.
-2025-06-28 07:56:32,258 - root - DEBUG - []
-2025-06-28 07:56:32,258 - root - INFO - ----Получение записей с left join таблицей в которой нет записей.
-2025-06-28 07:56:32,270 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35, 'employees.id': None, 'employees.ref_person': None, 'employees.ref_company': None, 'employees.hired': None, 'employees.dismissed': None}]
-2025-06-28 07:56:32,270 - root - INFO - ----Вложенные join запросы с фильтрацией и выбором полей.
-2025-06-28 07:56:32,285 - root - DEBUG - [{'address.id': 2, 'address.street': 'Наумова', 'address.building': 33, 'employees.id': 2, 'employees.ref_person': 2, 'employees.ref_company': 2, 'employees.hired': 1612588507, 'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05', 'compony_addr.id': 4, 'compony_addr.street': 'Приморская', 'compony_addr.building': 8, 'person.id': 2, 'person.name': 'Anton 2', 'person.age': 30}]
-2025-06-28 07:56:32,286 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:32,287 - root - INFO - Работа с кешем данных через запросы.
-2025-06-28 07:56:32,288 - root - INFO - -С постоянным кешем.
-2025-06-28 07:56:32,289 - root - INFO - ----Получение единичной записи.
-2025-06-28 07:56:32,291 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:32,293 - root - INFO - ----Получение нескольких записей.
-2025-06-28 07:56:32,298 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
-2025-06-28 07:56:32,299 - root - INFO - ----Получение записей по фильтру внутри кеша.
-2025-06-28 07:56:32,300 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
-2025-06-28 07:56:32,301 - root - INFO - ----Изменение записей по фильтру внутри кеша.
-2025-06-28 07:56:32,302 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
-2025-06-28 07:56:32,303 - root - INFO - ----Добавление записей в кеш.
-2025-06-28 07:56:32,303 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 6, 'person.login': 'qqq', 'person.name': 'Anton 6', 'person.ref_address': 0, 'person.age': 0, 'address.id': 6, 'address.street': 'ytutyu', 'address.building': 567}]
-2025-06-28 07:56:32,304 - root - INFO - ----Удаление записи из кеша.
-2025-06-28 07:56:32,305 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
-2025-06-28 07:56:32,306 - root - INFO - ----Удаление кеша привязаного к запросу.
-2025-06-28 07:56:32,308 - root - DEBUG - []
-2025-06-28 07:56:32,312 - root - INFO - ----Удаление кеша по таблице при изменение данных в таблице.
-2025-06-28 07:56:32,329 - root - INFO - ----Удаление кеша по таблице по запросу.
-2025-06-28 07:56:32,339 - root - INFO - ----Удаление кеша по таблице при изменение данных.
-2025-06-28 07:56:32,356 - root - INFO - -С redis кешем.
-2025-06-28 07:56:32,360 - root - INFO - ----Получение единичной записи.
-2025-06-28 07:56:32,372 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
-2025-06-28 07:56:32,375 - root - INFO - ----Получение нескольких записей.
-2025-06-28 07:56:32,387 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
-2025-06-28 07:56:32,388 - root - INFO - ----Получение записей по фильтру внутри кеша.
-2025-06-28 07:56:32,392 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
-2025-06-28 07:56:32,392 - root - INFO - ----Изменение записей по фильтру внутри кеша.
-2025-06-28 07:56:32,401 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
-2025-06-28 07:56:32,403 - root - INFO - ----Добавление записей в кеш.
-2025-06-28 07:56:32,415 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}, {'person.id': 6, 'person.login': 'qqq', 'person.name': 'Anton 6', 'person.ref_address': 0, 'person.age': 0, 'address.id': 6, 'address.street': 'ytutyu', 'address.building': 567}]
-2025-06-28 07:56:32,415 - root - INFO - ----Удаление записи из кеша.
-2025-06-28 07:56:32,431 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
-2025-06-28 07:56:32,432 - root - INFO - ----Удаление кеша привязаного к запросу.
-2025-06-28 07:56:32,444 - root - DEBUG - []
-2025-06-28 07:56:32,445 - root - INFO - ----Удаление кеша по таблице при изменение данных в таблице.
-2025-06-28 07:56:32,538 - root - INFO - ----Удаление кеша по таблице по запросу.
-2025-06-28 07:56:32,615 - root - INFO - ----Удаление кеша по таблице при изменение данных.
-2025-06-28 07:56:32,684 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:32,684 - root - INFO - Изменение данных в БД.
-2025-06-28 07:56:32,687 - root - INFO - -С кешем.
-2025-06-28 07:56:32,690 - root - INFO - ----Встатвка данных в БД.
-2025-06-28 07:56:32,703 - root - INFO - ----Изменение данных в БД.
-2025-06-28 07:56:32,716 - root - INFO - ----Удаление данных из БД.
-2025-06-28 07:56:32,728 - root - INFO - -Без кеша.
-2025-06-28 07:56:32,729 - root - INFO - ----Встатвка данных в БД.
-2025-06-28 07:56:32,743 - root - INFO - ----Изменение данных в БД.
-2025-06-28 07:56:32,755 - root - INFO - ----Удаление данных из БД.
-2025-06-28 07:56:32,769 - root - INFO - -redis кеша.
-2025-06-28 07:56:32,771 - root - INFO - ----Встатвка данных в БД.
-2025-06-28 07:56:32,799 - root - INFO - ----Изменение данных в БД.
-2025-06-28 07:56:32,828 - root - INFO - ----Удаление данных из БД.
-2025-06-28 07:56:32,849 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:32,851 - root - INFO - 5. Получение из postgres данных с разными типами и сохранение в кеш redis.
-2025-06-28 07:56:32,854 - root - DEBUG - [{'example_data_types.id': 1, 'example_data_types.jsonb_column': {'key': 'value'}, 'example_data_types.array_column': [1, 2, 3], 'example_data_types.bigint_column': 12345678901234567, 'example_data_types.boolean_column': True, 'example_data_types.timestamp_column': '2025-06-28T07:56:30.637188', 'example_data_types.bytea_column': '3q2+78r+', 'example_data_types.uuid_column': 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'example_data_types.json_column': {'key': 'value'}, 'example_data_types.varchar_column': 'First entry', 'example_data_types.text_array': ['first', 'second']}, {'example_data_types.id': 2, 'example_data_types.jsonb_column': {'baz': [1, 2, 3], 'foo': 'bar'}, 'example_data_types.array_column': [-1, -2, -3], 'example_data_types.bigint_column': 98765432109876543, 'example_data_types.boolean_column': False, 'example_data_types.timestamp_column': '2025-06-28T08:56:30.637188', 'example_data_types.bytea_column': '/u36zt6tvu8=', 'example_data_types.uuid_column': 'f47ac10b-58cc-4372-a567-0e02b2c3d479', 'example_data_types.json_column': {'foo': 'bar', 'baz': [1, 2, 3]}, 'example_data_types.varchar_column': 'Second entry', 'example_data_types.text_array': ['third', 'fourth']}]
-2025-06-28 07:56:32,854 - root - INFO - -------------------------------------------------------
-2025-06-28 07:56:32,856 - root - INFO - 6. Выполнение произвольных запросов.
-2025-06-28 07:56:32,856 - root - INFO - ----На получение данных из БД.
-2025-06-28 07:56:32,860 - root - DEBUG - [(1, 'First entry', 12345678901234567, True, datetime.datetime(2025, 6, 28, 7, 56, 30, 637188), <memory at 0x000001810B099600>, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', {'key': 'value'}, {'key': 'value'}, [1, 2, 3], ['first', 'second']), (2, 'Second entry', 98765432109876543, False, datetime.datetime(2025, 6, 28, 8, 56, 30, 637188), <memory at 0x000001810B09A2C0>, 'f47ac10b-58cc-4372-a567-0e02b2c3d479', {'foo': 'bar', 'baz': [1, 2, 3]}, {'baz': [1, 2, 3], 'foo': 'bar'}, [-1, -2, -3], ['third', 'fourth'])]
-2025-06-28 07:56:32,861 - root - INFO - ----Получение данных и кеширование
-2025-06-28 07:56:32,863 - root - DEBUG - [(1, 'First entry', 12345678901234567, True, datetime.datetime(2025, 6, 28, 7, 56, 30, 637188), <memory at 0x000001810B098100>, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', {'key': 'value'}, {'key': 'value'}, [1, 2, 3], ['first', 'second']), (2, 'Second entry', 98765432109876543, False, datetime.datetime(2025, 6, 28, 8, 56, 30, 637188), <memory at 0x000001810B099D80>, 'f47ac10b-58cc-4372-a567-0e02b2c3d479', {'foo': 'bar', 'baz': [1, 2, 3]}, {'baz': [1, 2, 3], 'foo': 'bar'}, [-1, -2, -3], ['third', 'fourth'])]
-2025-06-28 07:56:32,863 - root - INFO - ----Обновить данные в БД
-2025-06-28 07:56:32,865 - root - INFO - ----Получение данных из кеша
-2025-06-28 07:56:32,865 - root - DEBUG - [[1, 'First entry', 12345678901234567, True, '2025-06-28T07:56:30.637188', '3q2+78r+', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', {'key': 'value'}, {'key': 'value'}, [1, 2, 3], ['first', 'second']], [2, 'Second entry', 98765432109876543, False, '2025-06-28T08:56:30.637188', '/u36zt6tvu8=', 'f47ac10b-58cc-4372-a567-0e02b2c3d479', {'foo': 'bar', 'baz': [1, 2, 3]}, {'baz': [1, 2, 3], 'foo': 'bar'}, [-1, -2, -3], ['third', 'fourth']]]
-2025-06-28 07:56:32,866 - root - INFO - -Выполнение асинхронных произвольных запросов с локальным кешем.
-2025-06-28 07:56:32,867 - root - INFO - ----На получение данных из БД.
-2025-06-28 07:56:33,064 - root - DEBUG - [(2, 'Second entry', 98765432109876543, False, datetime.datetime(2025, 6, 28, 8, 56, 30, 637188), b'\xfe\xed\xfa\xce\xde\xad\xbe\xef', UUID('f47ac10b-58cc-4372-a567-0e02b2c3d479'), '{"foo":"bar","baz":[1,2,3]}', '{"baz": [1, 2, 3], "foo": "bar"}', [-1, -2, -3], ['third', 'fourth']), (1, 'test1', 12345678901234567, True, datetime.datetime(2025, 6, 28, 7, 56, 30, 637188), b'\xde\xad\xbe\xef\xca\xfe', UUID('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'), '{"key":"value"}', '{"key": "value"}', [1, 2, 3], ['first', 'second'])]
-2025-06-28 07:56:33,065 - root - INFO - ----Установить данные в кеш
-2025-06-28 07:56:33,255 - root - DEBUG - [(2, 'Second entry', 98765432109876543, False, datetime.datetime(2025, 6, 28, 8, 56, 30, 637188), b'\xfe\xed\xfa\xce\xde\xad\xbe\xef', UUID('f47ac10b-58cc-4372-a567-0e02b2c3d479'), '{"foo":"bar","baz":[1,2,3]}', '{"baz": [1, 2, 3], "foo": "bar"}', [-1, -2, -3], ['third', 'fourth']), (1, 'test1', 12345678901234567, True, datetime.datetime(2025, 6, 28, 7, 56, 30, 637188), b'\xde\xad\xbe\xef\xca\xfe', UUID('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'), '{"key":"value"}', '{"key": "value"}', [1, 2, 3], ['first', 'second'])]
-2025-06-28 07:56:33,255 - root - INFO - ----Обновить данные в кеще
-2025-06-28 07:56:33,420 - root - DEBUG - [(2, 'Second entry', 98765432109876543, False, datetime.datetime(2025, 6, 28, 8, 56, 30, 637188), b'\xfe\xed\xfa\xce\xde\xad\xbe\xef', UUID('f47ac10b-58cc-4372-a567-0e02b2c3d479'), '{"foo":"bar","baz":[1,2,3]}', '{"baz": [1, 2, 3], "foo": "bar"}', [-1, -2, -3], ['third', 'fourth']), (1, 'test1', 12345678901234567, True, datetime.datetime(2025, 6, 28, 7, 56, 30, 637188), b'\xde\xad\xbe\xef\xca\xfe', UUID('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'), '{"key":"value"}', '{"key": "value"}', [1, 2, 3], ['first', 'second'])]
-2025-06-28 07:56:33,421 - root - INFO - -Выполнение асинхронных произвольных запросов c удаленным кешем.
-2025-06-28 07:56:33,425 - root - INFO - ----На получение данных из БД.
-2025-06-28 07:56:33,620 - root - DEBUG - [(2, 'Second entry', 98765432109876543, False, datetime.datetime(2025, 6, 28, 8, 56, 30, 637188), b'\xfe\xed\xfa\xce\xde\xad\xbe\xef', UUID('f47ac10b-58cc-4372-a567-0e02b2c3d479'), '{"foo":"bar","baz":[1,2,3]}', '{"baz": [1, 2, 3], "foo": "bar"}', [-1, -2, -3], ['third', 'fourth']), (1, 'test1', 12345678901234567, True, datetime.datetime(2025, 6, 28, 7, 56, 30, 637188), b'\xde\xad\xbe\xef\xca\xfe', UUID('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'), '{"key":"value"}', '{"key": "value"}', [1, 2, 3], ['first', 'second'])]
-2025-06-28 07:56:33,621 - root - INFO - ----Обновить данные в БД
-2025-06-28 07:56:33,782 - root - INFO - ----Получение данных из кеша
-2025-06-28 07:56:33,784 - root - DEBUG - [[1, 'First entry', 12345678901234567, True, '2025-06-28T07:56:30.637188', '3q2+78r+', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', {'key': 'value'}, {'key': 'value'}, [1, 2, 3], ['first', 'second']], [2, 'Second entry', 98765432109876543, False, '2025-06-28T08:56:30.637188', '/u36zt6tvu8=', 'f47ac10b-58cc-4372-a567-0e02b2c3d479', {'foo': 'bar', 'baz': [1, 2, 3]}, {'baz': [1, 2, 3], 'foo': 'bar'}, [-1, -2, -3], ['third', 'fourth']]]
-2025-06-28 07:56:33,785 - root - INFO - ----Обновить кеш
-2025-06-28 07:56:34,033 - root - INFO - ----Получение данных из кеша
-2025-06-28 07:56:34,036 - root - DEBUG - [[1, 'test1', 12345678901234567, True, '2025-06-28T07:56:30.637188', '3q2+78r+', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '{"key":"value"}', '{"key": "value"}', [1, 2, 3], ['first', 'second']], [2, 'test2', 98765432109876543, False, '2025-06-28T08:56:30.637188', '/u36zt6tvu8=', 'f47ac10b-58cc-4372-a567-0e02b2c3d479', '{"foo":"bar","baz":[1,2,3]}', '{"baz": [1, 2, 3], "foo": "bar"}', [-1, -2, -3], ['third', 'fourth']]]
-2025-06-28 07:56:34,037 - root - INFO - ----Удаление кеша по запросу
-2025-06-28 07:56:34,244 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:34,847 - root - INFO - ======================================================================
+2025-08-09 07:15:34,848 - root - INFO - Выполнение тестов для TestCacheQuery.
+2025-08-09 07:15:34,848 - root - INFO - ======================================================================
+2025-08-09 07:15:34,849 - root - INFO - 1. Получение и удаление данных из кеша по sql запросу.
+2025-08-09 07:15:34,849 - root - INFO - ----Запись в кеш.
+2025-08-09 07:15:34,850 - root - INFO - ----Чтение записей из кеша.
+2025-08-09 07:15:34,850 - root - INFO - ----Удаление закешированные записи связанные с таблицей person.
+2025-08-09 07:15:34,851 - root - INFO - ----Удаление закешированную запись по sql запросу.
+2025-08-09 07:15:34,851 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:34,851 - root - INFO - 2. Попытка удалить кеш из потока 2 при попытки чтения из потока 1.
+2025-08-09 07:15:34,851 - root - INFO - ----Чтение будет 3 секунды. Запуск удаление через 1 секунду.
+2025-08-09 07:15:37,853 - root - INFO - ----Порядок выполнений операций не нарушен.
+2025-08-09 07:15:37,854 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:37,855 - root - INFO - 3. Асинхроность.
+2025-08-09 07:15:37,857 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-08-09 07:15:37,861 - root - INFO - ----Запись в кеш.
+2025-08-09 07:15:37,862 - root - INFO - ----Чтение записей из кеша.
+2025-08-09 07:15:37,863 - root - INFO - ----Удаление закешированные записи связанные с таблицей person.
+2025-08-09 07:15:37,865 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:37,865 - root - INFO - 4. Изменение единичной записи в кеше по ссылки.
+2025-08-09 07:15:37,866 - root - INFO - ----Запись в кеш.
+2025-08-09 07:15:37,866 - root - INFO - ----Изменение во внутренней функции.
+2025-08-09 07:15:37,867 - root - INFO - ----Update словаря.
+2025-08-09 07:15:37,867 - root - INFO - ----Поиск и обновление по индексу.
+2025-08-09 07:15:37,867 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:37,867 - root - INFO - 5. Получение и изменение данных в кеше по фильтрации.
+2025-08-09 07:15:37,867 - root - INFO - ----Запись в кеш.
+2025-08-09 07:15:37,868 - root - INFO - ----Получение по фильтрации.
+2025-08-09 07:15:37,868 - root - INFO - ----Обновление записи по фильтрации.
+2025-08-09 07:15:37,869 - root - INFO - ----Удаление записи по фильтрации.
+2025-08-09 07:15:37,871 - root - INFO - ----Добавление записи в кеш.
+2025-08-09 07:15:37,872 - root - INFO - ----Добавление записи с не правильными полями в кеш.
+2025-08-09 07:15:37,873 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:37,878 - root - INFO - ======================================================================
+2025-08-09 07:15:37,879 - root - INFO - Выполнение тестов для TestDB.
+2025-08-09 07:15:37,879 - root - INFO - ======================================================================
+2025-08-09 07:15:38,094 - root - INFO - 1. Проверка для SQLiteQuery.
+2025-08-09 07:15:38,094 - root - INFO - ----Получение из БД.
+2025-08-09 07:15:38,099 - root - INFO - ----обойти такое "экранирование" через Unicode-символы.
+2025-08-09 07:15:38,101 - root - DEBUG - select * from address where street = '1&#39;; DROP TABLE users; --'
+2025-08-09 07:15:38,101 - root - INFO - ----обойти такое "экранирование" через слеши.
+2025-08-09 07:15:38,102 - root - DEBUG - select * from address where street = '1&#39;; DROP TABLE users; --'
+2025-08-09 07:15:38,103 - root - INFO - ----обойти такое "экранирование" через двойные кавычки.
+2025-08-09 07:15:38,104 - root - DEBUG - select * from address where street = '1&#34;; DROP TABLE users; --'
+2025-08-09 07:15:38,105 - root - INFO - ----Вставка в БД.
+2025-08-09 07:15:38,114 - root - INFO - ----Обновление в БД.
+2025-08-09 07:15:38,121 - root - INFO - ----Удаление из БД.
+2025-08-09 07:15:38,131 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:38,131 - root - INFO - 2. Проверка для AsyncSQLiteQuery.
+2025-08-09 07:15:38,132 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-08-09 07:15:38,134 - root - INFO - ----Получение из БД.
+2025-08-09 07:15:38,139 - root - INFO - ----Вставка в БД.
+2025-08-09 07:15:38,150 - root - INFO - ----Обновление в БД.
+2025-08-09 07:15:38,159 - root - INFO - ----Удаление из БД.
+2025-08-09 07:15:38,173 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:38,173 - root - INFO - 3. Проверка для PostgresQuery.
+2025-08-09 07:15:38,174 - root - INFO - ----Получение из БД.
+2025-08-09 07:15:38,176 - root - INFO - ----обойти такое "экранирование" через Unicode-символы.
+2025-08-09 07:15:38,178 - root - DEBUG - select * from address where street = '1&#39;; DROP TABLE users; --'
+2025-08-09 07:15:38,178 - root - INFO - ----обойти такое "экранирование" через слеши.
+2025-08-09 07:15:38,179 - root - DEBUG - select * from address where street = '1&#39;; DROP TABLE users; --'
+2025-08-09 07:15:38,179 - root - INFO - ----обойти такое "экранирование" через двойные кавычки.
+2025-08-09 07:15:38,180 - root - DEBUG - select * from address where street = '1&#34;; DROP TABLE users; --'
+2025-08-09 07:15:38,181 - root - INFO - ----Вставка в БД.
+2025-08-09 07:15:38,182 - root - INFO - ----Обновление в БД.
+2025-08-09 07:15:38,184 - root - INFO - ----Удаление из БД.
+2025-08-09 07:15:38,185 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:38,185 - root - INFO - 4. Проверка для AsyncPostgresQuery.
+2025-08-09 07:15:38,186 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-08-09 07:15:38,187 - root - INFO - ----Получение из БД.
+2025-08-09 07:15:38,500 - root - INFO - ----Вставка в БД.
+2025-08-09 07:15:38,915 - root - INFO - ----Обновление в БД.
+2025-08-09 07:15:39,062 - root - INFO - ----Удаление из БД.
+2025-08-09 07:15:39,423 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:39,437 - root - INFO - ======================================================================
+2025-08-09 07:15:39,438 - root - INFO - Выполнение тестов для TestQuery.
+2025-08-09 07:15:39,439 - root - INFO - ======================================================================
+2025-08-09 07:15:39,444 - root - INFO - 1. Запросы на получение записей.
+2025-08-09 07:15:39,445 - root - INFO - ----обойти такое "экранирование" через Unicode-символы.
+2025-08-09 07:15:39,447 - root - DEBUG - select person.id, person.login, person.name, person.ref_address, person.age from person where person.name = '1&#39;; DROP TABLE users; --'
+2025-08-09 07:15:39,449 - root - INFO - ----обойти такое "экранирование" через двойные кавычки.
+2025-08-09 07:15:39,450 - root - DEBUG - select person.id, person.login, person.name, person.ref_address, person.age from person where person.name = '1&#34;; DROP TABLE users; --'
+2025-08-09 07:15:39,452 - root - INFO - ----обойти такое "экранирование" через HEX-формате.
+2025-08-09 07:15:39,454 - root - INFO - ----Получение по идентификатору из одной таблице.
+2025-08-09 07:15:39,455 - root - DEBUG - select person.id, person.login, person.name, person.ref_address, person.age from person where person.id = 2
+2025-08-09 07:15:39,456 - root - INFO - ----Получение несколько записей по диапазону.
+2025-08-09 07:15:39,457 - root - DEBUG - select person.id, person.login, person.name, person.ref_address, person.age from person where person.age between 25 and 31
+2025-08-09 07:15:39,460 - root - INFO - ----Получение записей с join таблицей.
+2025-08-09 07:15:39,461 - root - DEBUG - select person.id, person.login, person.name, person.ref_address, person.age, address.id, address.street, address.building from person join (select address.id, address.street, address.building from address) as address on address.id = person.ref_address where person.age between 25 and 31
+2025-08-09 07:15:39,463 - root - INFO - ----Получение записей по текстовой дате.
+2025-08-09 07:15:39,464 - root - DEBUG - select company.id, company.name, company.ref_address, company.registration from company where company.registration between '2021-02-20' and '2021-04-20'
+2025-08-09 07:15:39,473 - root - INFO - ----Вложенные join запросы.
+2025-08-09 07:15:39,475 - root - DEBUG - select address.id, address.street, address.building, employees.id, employees.ref_person, employees.ref_company, employees.hired, company.id, company.name, company.ref_address, company.registration, compony_addr.id, compony_addr.street, compony_addr.building, person.id, person.name, person.age from person join (select address.id, address.street, address.building from address) as address on address.id = person.ref_address left join (select employees.id, employees.ref_person, employees.ref_company, employees.hired from employees join (select company.id, company.name, company.ref_address, company.registration from company join (select address.id, address.street, address.building from address) as compony_addr on compony_addr.id = company.ref_address where company.registration between '2020-01-02' and '2020-01-06') as company on company.id = employees.ref_company join (select address.id, address.street, address.building from address) as compony_addr on compony_addr.id = company.ref_address) as employees on employees.ref_person = person.id join (select company.id, company.name, company.ref_address, company.registration from company join (select address.id, address.street, address.building from address) as compony_addr on compony_addr.id = company.ref_address where company.registration between '2020-01-02' and '2020-01-06') as company on company.id = employees.ref_company join (select address.id, address.street, address.building from address) as compony_addr on compony_addr.id = company.ref_address where person.id = 2 order by person.age desc
+2025-08-09 07:15:39,477 - root - INFO - ----Изменение количества выводимых полей.
+2025-08-09 07:15:39,477 - root - INFO - ----Мапинг полей в join запросах.
+2025-08-09 07:15:39,478 - root - INFO - ----Мапинг полей в одной таблице.
+2025-08-09 07:15:39,479 - root - INFO - ----Left join запрос при отсутсвие записи в таблице.
+2025-08-09 07:15:39,483 - root - DEBUG - select person.id, person.login, person.name, person.ref_address, person.age, employees.id, employees.ref_person, employees.ref_company, employees.hired, employees.dismissed from person left join (select employees.id, employees.ref_person, employees.ref_company, employees.hired, employees.dismissed from employees) as employees on employees.ref_person = person.id where person.id = 4
+2025-08-09 07:15:39,484 - root - INFO - ----Поиск по части имени.
+2025-08-09 07:15:39,484 - root - DEBUG - select person.id, person.login, person.name, person.ref_address, person.age from person where person.name like '%%4'
+2025-08-09 07:15:39,485 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:39,487 - root - INFO - 2. Запросы на изменения.
+2025-08-09 07:15:39,488 - root - INFO - ----Update с фильтрацией.
+2025-08-09 07:15:39,489 - root - DEBUG - update person set age = 34, name = 'Tony 4' where person.id = 4
+2025-08-09 07:15:39,491 - root - INFO - ----Insert одной записи.
+2025-08-09 07:15:39,492 - root - DEBUG - insert into person (login, name, age, ref_address) values ('fer0', 'Anton 5', 36, 1)
+2025-08-09 07:15:39,492 - root - INFO - ----Insert несколько записей.
+2025-08-09 07:15:39,493 - root - DEBUG - insert into person (login, name, age, ref_address) values ('fer0', 'Anton 5', 36, 1), ('fdgdf', 'Anton 6', 37, 2)
+2025-08-09 07:15:39,494 - root - INFO - ----Удаление записи.
+2025-08-09 07:15:39,498 - root - DEBUG - delete from person  where person.id = 6
+2025-08-09 07:15:39,499 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:39,502 - root - INFO - ======================================================================
+2025-08-09 07:15:39,504 - root - INFO - Выполнение тестов для TestRedisQuery.
+2025-08-09 07:15:39,506 - root - INFO - ======================================================================
+2025-08-09 07:15:39,527 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-08-09 07:15:39,528 - root - INFO - 1. Получение и удаление данных из кеша по sql запросу.
+2025-08-09 07:15:39,529 - root - INFO - ----Запись в кеш.
+2025-08-09 07:15:39,539 - root - INFO - ----Чтение записей из кеша.
+2025-08-09 07:15:39,540 - root - INFO - ----Удаление закешированные записи связанные с таблицей person.
+2025-08-09 07:15:39,546 - root - INFO - ----Удаление закешированную запись по sql запросу.
+2025-08-09 07:15:39,548 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:39,549 - root - INFO - 3. Асинхронный кеш редис.
+2025-08-09 07:15:39,549 - root - INFO -  Получение и удаление данных из кеша по sql запросу.
+2025-08-09 07:15:39,550 - root - INFO - ----Запись в кеш.
+2025-08-09 07:15:39,564 - root - INFO - ----Чтение записей из кеша.
+2025-08-09 07:15:39,771 - root - INFO - ----Удаление закешированные записи связанные с таблицей person.
+2025-08-09 07:15:39,790 - root - INFO - ----Удаление закешированную запись по sql запросу.
+2025-08-09 07:15:39,798 - root - INFO -  Получение и изменение данных в кеше по фильтрации.
+2025-08-09 07:15:39,799 - root - INFO - ----Запись в кеш.
+2025-08-09 07:15:39,805 - root - INFO - ----Получение по фильтрации.
+2025-08-09 07:15:39,807 - root - INFO - ----Обновление записи по фильтрации.
+2025-08-09 07:15:39,814 - root - INFO - ----Удаление записи по фильтрации.
+2025-08-09 07:15:39,824 - root - INFO - ----Добавление записи в кеш.
+2025-08-09 07:15:39,832 - root - INFO - ----Добавление записи с не правильными полями в кеш.
+2025-08-09 07:15:39,836 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:39,844 - root - INFO - ======================================================================
+2025-08-09 07:15:39,858 - root - INFO - Выполнение тестов для TestTables.
+2025-08-09 07:15:39,860 - root - INFO - ======================================================================
+2025-08-09 07:15:39,863 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-08-09 07:15:41,295 - root - INFO - 1. Выполнение запросов на получение записей.
+2025-08-09 07:15:41,296 - root - INFO - -С отключенным кешем.
+2025-08-09 07:15:41,298 - root - INFO - ----Проверка доступа к кешу.
+2025-08-09 07:15:41,299 - root - INFO - -----Доступ к кешу закрыт.
+2025-08-09 07:15:41,300 - root - INFO - ----Получение записи по ИД.
+2025-08-09 07:15:41,302 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:41,305 - root - INFO - ----Получение записи по части имени.
+2025-08-09 07:15:41,308 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:41,309 - root - INFO - ----Получение записи по вхождению.
+2025-08-09 07:15:41,312 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:41,313 - root - INFO - ----Получение записи по диапазону.
+2025-08-09 07:15:41,317 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:41,318 - root - INFO - ----Получение записи по больще или равно.
+2025-08-09 07:15:41,324 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:41,328 - root - INFO - ----Получение записи по диапазону дат.
+2025-08-09 07:15:41,330 - root - DEBUG - [{'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05'}]
+2025-08-09 07:15:41,331 - root - INFO - ----Сортировка и лимит записей.
+2025-08-09 07:15:41,333 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:41,333 - root - INFO - ----Получение записей с join таблицей.
+2025-08-09 07:15:41,335 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}]
+2025-08-09 07:15:41,341 - root - INFO - ----Получение записей с join таблицей в которой нет записей.
+2025-08-09 07:15:41,378 - root - DEBUG - []
+2025-08-09 07:15:41,381 - root - INFO - ----Получение записей с left join таблицей в которой нет записей.
+2025-08-09 07:15:41,393 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35, 'employees.id': None, 'employees.ref_person': None, 'employees.ref_company': None, 'employees.hired': None, 'employees.dismissed': None}]
+2025-08-09 07:15:41,396 - root - INFO - ----Вложенные join запросы с фильтрацией и выбором полей.
+2025-08-09 07:15:41,422 - root - DEBUG - [{'address.id': 2, 'address.street': 'Наумова', 'address.building': 33, 'employees.id': 2, 'employees.ref_person': 2, 'employees.ref_company': 2, 'employees.hired': 1612588507, 'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05', 'compony_addr.id': 4, 'compony_addr.street': 'Приморская', 'compony_addr.building': 8, 'person.id': 2, 'person.name': 'Anton 2', 'person.age': 30}]
+2025-08-09 07:15:41,426 - root - INFO - -С временным кешем.
+2025-08-09 07:15:41,428 - root - INFO - ----Проверка доступа к кешу.
+2025-08-09 07:15:41,444 - root - INFO - -----Доступ к кешу открыт.
+2025-08-09 07:15:41,459 - root - INFO - ----Получение записи по ИД.
+2025-08-09 07:15:41,463 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:41,466 - root - INFO - ----Получение записи по части имени.
+2025-08-09 07:15:41,474 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:41,494 - root - INFO - ----Получение записи по вхождению.
+2025-08-09 07:15:41,510 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:41,512 - root - INFO - ----Получение записи по диапазону.
+2025-08-09 07:15:41,518 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:41,526 - root - INFO - ----Получение записи по больще или равно.
+2025-08-09 07:15:41,530 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:41,550 - root - INFO - ----Получение записи по диапазону дат.
+2025-08-09 07:15:41,596 - root - DEBUG - [{'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05'}]
+2025-08-09 07:15:41,600 - root - INFO - ----Сортировка и лимит записей.
+2025-08-09 07:15:41,608 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:41,612 - root - INFO - ----Получение записей с join таблицей.
+2025-08-09 07:15:41,615 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}]
+2025-08-09 07:15:41,618 - root - INFO - ----Получение записей с join таблицей в которой нет записей.
+2025-08-09 07:15:41,625 - root - DEBUG - []
+2025-08-09 07:15:41,630 - root - INFO - ----Получение записей с left join таблицей в которой нет записей.
+2025-08-09 07:15:41,639 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35, 'employees.id': None, 'employees.ref_person': None, 'employees.ref_company': None, 'employees.hired': None, 'employees.dismissed': None}]
+2025-08-09 07:15:41,641 - root - INFO - ----Вложенные join запросы с фильтрацией и выбором полей.
+2025-08-09 07:15:41,644 - root - DEBUG - [{'address.id': 2, 'address.street': 'Наумова', 'address.building': 33, 'employees.id': 2, 'employees.ref_person': 2, 'employees.ref_company': 2, 'employees.hired': 1612588507, 'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05', 'compony_addr.id': 4, 'compony_addr.street': 'Приморская', 'compony_addr.building': 8, 'person.id': 2, 'person.name': 'Anton 2', 'person.age': 30}]
+2025-08-09 07:15:41,645 - root - INFO - -С постоянным кешем.
+2025-08-09 07:15:41,648 - root - INFO - ----Проверка доступа к кешу.
+2025-08-09 07:15:41,650 - root - INFO - -----Доступ к кешу открыт.
+2025-08-09 07:15:41,651 - root - INFO - ----Получение записи по ИД.
+2025-08-09 07:15:41,657 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:41,659 - root - INFO - ----Получение записи по части имени.
+2025-08-09 07:15:41,663 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:41,663 - root - INFO - ----Получение записи по вхождению.
+2025-08-09 07:15:41,666 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:41,667 - root - INFO - ----Получение записи по диапазону.
+2025-08-09 07:15:41,674 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:41,676 - root - INFO - ----Получение записи по больще или равно.
+2025-08-09 07:15:41,678 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:41,681 - root - INFO - ----Получение записи по диапазону дат.
+2025-08-09 07:15:41,690 - root - DEBUG - [{'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05'}]
+2025-08-09 07:15:41,699 - root - INFO - ----Сортировка и лимит записей.
+2025-08-09 07:15:41,706 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:41,713 - root - INFO - ----Получение записей с join таблицей.
+2025-08-09 07:15:41,725 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}]
+2025-08-09 07:15:41,726 - root - INFO - ----Получение записей с join таблицей в которой нет записей.
+2025-08-09 07:15:41,728 - root - DEBUG - []
+2025-08-09 07:15:41,728 - root - INFO - ----Получение записей с left join таблицей в которой нет записей.
+2025-08-09 07:15:41,731 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35, 'employees.id': None, 'employees.ref_person': None, 'employees.ref_company': None, 'employees.hired': None, 'employees.dismissed': None}]
+2025-08-09 07:15:41,732 - root - INFO - ----Вложенные join запросы с фильтрацией и выбором полей.
+2025-08-09 07:15:41,735 - root - DEBUG - [{'address.id': 2, 'address.street': 'Наумова', 'address.building': 33, 'employees.id': 2, 'employees.ref_person': 2, 'employees.ref_company': 2, 'employees.hired': 1612588507, 'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05', 'compony_addr.id': 4, 'compony_addr.street': 'Приморская', 'compony_addr.building': 8, 'person.id': 2, 'person.name': 'Anton 2', 'person.age': 30}]
+2025-08-09 07:15:41,736 - root - INFO - -Кеш redis.
+2025-08-09 07:15:41,740 - root - INFO - ----Проверка доступа к кешу.
+2025-08-09 07:15:41,743 - root - INFO - -----Доступ к кешу открыт.
+2025-08-09 07:15:41,745 - root - INFO - ----Получение записи по ИД.
+2025-08-09 07:15:41,750 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:41,751 - root - INFO - ----Получение записи по части имени.
+2025-08-09 07:15:41,756 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:41,756 - root - INFO - ----Получение записи по вхождению.
+2025-08-09 07:15:41,760 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:41,760 - root - INFO - ----Получение записи по диапазону.
+2025-08-09 07:15:41,764 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:41,764 - root - INFO - ----Получение записи по больще или равно.
+2025-08-09 07:15:41,770 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:41,771 - root - INFO - ----Получение записи по диапазону дат.
+2025-08-09 07:15:41,774 - root - DEBUG - [{'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05'}]
+2025-08-09 07:15:41,775 - root - INFO - ----Сортировка и лимит записей.
+2025-08-09 07:15:41,780 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:41,781 - root - INFO - ----Получение записей с join таблицей.
+2025-08-09 07:15:41,785 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}]
+2025-08-09 07:15:41,786 - root - INFO - ----Получение записей с join таблицей в которой нет записей.
+2025-08-09 07:15:41,790 - root - DEBUG - []
+2025-08-09 07:15:41,790 - root - INFO - ----Получение записей с left join таблицей в которой нет записей.
+2025-08-09 07:15:41,795 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35, 'employees.id': None, 'employees.ref_person': None, 'employees.ref_company': None, 'employees.hired': None, 'employees.dismissed': None}]
+2025-08-09 07:15:41,795 - root - INFO - ----Вложенные join запросы с фильтрацией и выбором полей.
+2025-08-09 07:15:41,802 - root - DEBUG - [{'address.id': 2, 'address.street': 'Наумова', 'address.building': 33, 'employees.id': 2, 'employees.ref_person': 2, 'employees.ref_company': 2, 'employees.hired': 1612588507, 'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05', 'compony_addr.id': 4, 'compony_addr.street': 'Приморская', 'compony_addr.building': 8, 'person.id': 2, 'person.name': 'Anton 2', 'person.age': 30}]
+2025-08-09 07:15:41,803 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:41,805 - root - INFO - 2. Работа с кешем данных через запросы.
+2025-08-09 07:15:41,806 - root - INFO - -С временным кешем.
+2025-08-09 07:15:41,807 - root - INFO - ----Получение единичной записи.
+2025-08-09 07:15:41,810 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:41,811 - root - INFO - ----Получение нескольких записей.
+2025-08-09 07:15:41,813 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
+2025-08-09 07:15:41,814 - root - INFO - ----Получение записей по фильтру внутри кеша.
+2025-08-09 07:15:41,814 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
+2025-08-09 07:15:41,815 - root - INFO - ----Изменение записей по фильтру внутри кеша.
+2025-08-09 07:15:41,819 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
+2025-08-09 07:15:41,820 - root - INFO - ----Добавление записей в кеш.
+2025-08-09 07:15:41,820 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 6, 'person.login': 'qqq', 'person.name': 'Anton 6', 'person.ref_address': 0, 'person.age': 0, 'address.id': 6, 'address.street': 'ytutyu', 'address.building': 567}]
+2025-08-09 07:15:41,821 - root - INFO - ----Удаление записи из кеша.
+2025-08-09 07:15:41,822 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
+2025-08-09 07:15:41,823 - root - INFO - ----Удаление кеша привязаного к запросу.
+2025-08-09 07:15:41,824 - root - DEBUG - []
+2025-08-09 07:15:41,824 - root - INFO - ----Удаление кеша по таблице при изменение данных в таблице.
+2025-08-09 07:15:41,834 - root - INFO - ----Удаление кеша по таблице по запросу.
+2025-08-09 07:15:41,840 - root - INFO - ----Удаление кеша по таблице при изменение данных.
+2025-08-09 07:15:41,852 - root - INFO - -С постоянным кешем.
+2025-08-09 07:15:41,853 - root - INFO - ----Получение единичной записи.
+2025-08-09 07:15:41,856 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:41,857 - root - INFO - ----Получение нескольких записей.
+2025-08-09 07:15:41,859 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
+2025-08-09 07:15:41,861 - root - INFO - ----Получение записей по фильтру внутри кеша.
+2025-08-09 07:15:41,871 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
+2025-08-09 07:15:41,873 - root - INFO - ----Изменение записей по фильтру внутри кеша.
+2025-08-09 07:15:41,873 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
+2025-08-09 07:15:41,875 - root - INFO - ----Добавление записей в кеш.
+2025-08-09 07:15:41,876 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}, {'person.id': 6, 'person.login': 'qqq', 'person.name': 'Anton 6', 'person.ref_address': 0, 'person.age': 0, 'address.id': 6, 'address.street': 'ytutyu', 'address.building': 567}]
+2025-08-09 07:15:41,877 - root - INFO - ----Удаление записи из кеша.
+2025-08-09 07:15:41,878 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
+2025-08-09 07:15:41,879 - root - INFO - ----Удаление кеша привязаного к запросу.
+2025-08-09 07:15:41,883 - root - DEBUG - []
+2025-08-09 07:15:41,884 - root - INFO - ----Удаление кеша по таблице при изменение данных в таблице.
+2025-08-09 07:15:41,901 - root - INFO - ----Удаление кеша по таблице по запросу.
+2025-08-09 07:15:41,913 - root - INFO - ----Удаление кеша по таблице при изменение данных.
+2025-08-09 07:15:41,921 - root - INFO - -Кеш redis.
+2025-08-09 07:15:41,921 - root - INFO - ----Получение единичной записи.
+2025-08-09 07:15:41,926 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:41,927 - root - INFO - ----Получение нескольких записей.
+2025-08-09 07:15:41,933 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
+2025-08-09 07:15:41,933 - root - INFO - ----Получение записей по фильтру внутри кеша.
+2025-08-09 07:15:41,935 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
+2025-08-09 07:15:41,935 - root - INFO - ----Изменение записей по фильтру внутри кеша.
+2025-08-09 07:15:41,938 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
+2025-08-09 07:15:41,938 - root - INFO - ----Добавление записей в кеш.
+2025-08-09 07:15:41,941 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}, {'person.id': 6, 'person.login': 'qqq', 'person.name': 'Anton 6', 'person.ref_address': 0, 'person.age': 0, 'address.id': 6, 'address.street': 'ytutyu', 'address.building': 567}]
+2025-08-09 07:15:41,942 - root - INFO - ----Удаление записи из кеша.
+2025-08-09 07:15:41,945 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
+2025-08-09 07:15:41,947 - root - INFO - ----Удаление кеша привязаного к запросу.
+2025-08-09 07:15:41,949 - root - DEBUG - []
+2025-08-09 07:15:41,950 - root - INFO - ----Удаление кеша по таблице при изменение данных в таблице.
+2025-08-09 07:15:41,974 - root - INFO - ----Удаление кеша по таблице по запросу.
+2025-08-09 07:15:41,992 - root - INFO - ----Удаление кеша по таблице при изменение данных.
+2025-08-09 07:15:42,011 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:42,012 - root - INFO - 3. Изменение данных в БД.
+2025-08-09 07:15:42,015 - root - INFO - -С кешем.
+2025-08-09 07:15:42,020 - root - INFO - ----Встатвка данных в БД.
+2025-08-09 07:15:42,029 - root - INFO - ----Изменение данных в БД.
+2025-08-09 07:15:42,038 - root - INFO - ----Удаление данных из БД.
+2025-08-09 07:15:42,047 - root - INFO - -Без кеша.
+2025-08-09 07:15:42,047 - root - INFO - ----Встатвка данных в БД.
+2025-08-09 07:15:42,059 - root - INFO - ----Изменение данных в БД.
+2025-08-09 07:15:42,071 - root - INFO - ----Удаление данных из БД.
+2025-08-09 07:15:42,079 - root - INFO - -Кеш redis.
+2025-08-09 07:15:42,080 - root - INFO - ----Встатвка данных в БД.
+2025-08-09 07:15:42,093 - root - INFO - ----Изменение данных в БД.
+2025-08-09 07:15:42,107 - root - INFO - ----Удаление данных из БД.
+2025-08-09 07:15:42,118 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:42,119 - root - INFO - 4. Асинхроность.
+2025-08-09 07:15:42,120 - root - INFO - Выполнение запросов на получение записей.
+2025-08-09 07:15:42,120 - root - INFO - -Без кеша.
+2025-08-09 07:15:42,121 - root - INFO - ----Получение записи по ИД.
+2025-08-09 07:15:42,125 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:42,125 - root - INFO - ----Получение записи по части имени.
+2025-08-09 07:15:42,129 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:42,130 - root - INFO - ----Получение записи по вхождению.
+2025-08-09 07:15:42,134 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:42,134 - root - INFO - ----Получение записи по диапазону.
+2025-08-09 07:15:42,138 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:42,138 - root - INFO - ----Получение записи по больще или равно.
+2025-08-09 07:15:42,141 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:42,142 - root - INFO - ----Получение записи по диапазону дат.
+2025-08-09 07:15:42,145 - root - DEBUG - [{'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05'}]
+2025-08-09 07:15:42,145 - root - INFO - ----Сортировка и лимит записей.
+2025-08-09 07:15:42,148 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:42,150 - root - INFO - ----Получение записей с join таблицей.
+2025-08-09 07:15:42,157 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}]
+2025-08-09 07:15:42,158 - root - INFO - ----Получение записей с join таблицей в которой нет записей.
+2025-08-09 07:15:42,162 - root - DEBUG - []
+2025-08-09 07:15:42,162 - root - INFO - ----Получение записей с left join таблицей в которой нет записей.
+2025-08-09 07:15:42,167 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35, 'employees.id': None, 'employees.ref_person': None, 'employees.ref_company': None, 'employees.hired': None, 'employees.dismissed': None}]
+2025-08-09 07:15:42,167 - root - INFO - ----Вложенные join запросы с фильтрацией и выбором полей.
+2025-08-09 07:15:42,172 - root - DEBUG - [{'address.id': 2, 'address.street': 'Наумова', 'address.building': 33, 'employees.id': 2, 'employees.ref_person': 2, 'employees.ref_company': 2, 'employees.hired': 1612588507, 'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05', 'compony_addr.id': 4, 'compony_addr.street': 'Приморская', 'compony_addr.building': 8, 'person.id': 2, 'person.name': 'Anton 2', 'person.age': 30}]
+2025-08-09 07:15:42,184 - root - INFO - -С постоянным кешем.
+2025-08-09 07:15:42,185 - root - INFO - ----Получение записи по ИД.
+2025-08-09 07:15:42,191 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:42,191 - root - INFO - ----Получение записи по части имени.
+2025-08-09 07:15:42,195 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:42,195 - root - INFO - ----Получение записи по вхождению.
+2025-08-09 07:15:42,198 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:42,199 - root - INFO - ----Получение записи по диапазону.
+2025-08-09 07:15:42,203 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:42,204 - root - INFO - ----Получение записи по больще или равно.
+2025-08-09 07:15:42,208 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:42,208 - root - INFO - ----Получение записи по диапазону дат.
+2025-08-09 07:15:42,211 - root - DEBUG - [{'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05'}]
+2025-08-09 07:15:42,211 - root - INFO - ----Сортировка и лимит записей.
+2025-08-09 07:15:42,215 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:42,215 - root - INFO - ----Получение записей с join таблицей.
+2025-08-09 07:15:42,218 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}]
+2025-08-09 07:15:42,219 - root - INFO - ----Получение записей с join таблицей в которой нет записей.
+2025-08-09 07:15:42,222 - root - DEBUG - []
+2025-08-09 07:15:42,222 - root - INFO - ----Получение записей с left join таблицей в которой нет записей.
+2025-08-09 07:15:42,225 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35, 'employees.id': None, 'employees.ref_person': None, 'employees.ref_company': None, 'employees.hired': None, 'employees.dismissed': None}]
+2025-08-09 07:15:42,225 - root - INFO - ----Вложенные join запросы с фильтрацией и выбором полей.
+2025-08-09 07:15:42,229 - root - DEBUG - [{'address.id': 2, 'address.street': 'Наумова', 'address.building': 33, 'employees.id': 2, 'employees.ref_person': 2, 'employees.ref_company': 2, 'employees.hired': 1612588507, 'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05', 'compony_addr.id': 4, 'compony_addr.street': 'Приморская', 'compony_addr.building': 8, 'person.id': 2, 'person.name': 'Anton 2', 'person.age': 30}]
+2025-08-09 07:15:42,233 - root - INFO - -С redis кешем.
+2025-08-09 07:15:42,234 - root - INFO - ----Получение записи по ИД.
+2025-08-09 07:15:42,244 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:42,244 - root - INFO - ----Получение записи по части имени.
+2025-08-09 07:15:42,254 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:42,254 - root - INFO - ----Получение записи по вхождению.
+2025-08-09 07:15:42,264 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:42,265 - root - INFO - ----Получение записи по диапазону.
+2025-08-09 07:15:42,274 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:42,275 - root - INFO - ----Получение записи по больще или равно.
+2025-08-09 07:15:42,285 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:42,286 - root - INFO - ----Получение записи по диапазону дат.
+2025-08-09 07:15:42,295 - root - DEBUG - [{'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05'}]
+2025-08-09 07:15:42,296 - root - INFO - ----Сортировка и лимит записей.
+2025-08-09 07:15:42,306 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35}]
+2025-08-09 07:15:42,307 - root - INFO - ----Получение записей с join таблицей.
+2025-08-09 07:15:42,318 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}]
+2025-08-09 07:15:42,319 - root - INFO - ----Получение записей с join таблицей в которой нет записей.
+2025-08-09 07:15:42,328 - root - DEBUG - []
+2025-08-09 07:15:42,328 - root - INFO - ----Получение записей с left join таблицей в которой нет записей.
+2025-08-09 07:15:42,341 - root - DEBUG - [{'person.id': 4, 'person.login': 'ytr', 'person.name': 'Anton 4', 'person.ref_address': 2, 'person.age': 35, 'employees.id': None, 'employees.ref_person': None, 'employees.ref_company': None, 'employees.hired': None, 'employees.dismissed': None}]
+2025-08-09 07:15:42,342 - root - INFO - ----Вложенные join запросы с фильтрацией и выбором полей.
+2025-08-09 07:15:42,354 - root - DEBUG - [{'address.id': 2, 'address.street': 'Наумова', 'address.building': 33, 'employees.id': 2, 'employees.ref_person': 2, 'employees.ref_company': 2, 'employees.hired': 1612588507, 'company.id': 2, 'company.name': 'Hex', 'company.ref_address': 4, 'company.registration': '2020-01-05', 'compony_addr.id': 4, 'compony_addr.street': 'Приморская', 'compony_addr.building': 8, 'person.id': 2, 'person.name': 'Anton 2', 'person.age': 30}]
+2025-08-09 07:15:42,354 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:42,355 - root - INFO - Работа с кешем данных через запросы.
+2025-08-09 07:15:42,356 - root - INFO - -С постоянным кешем.
+2025-08-09 07:15:42,356 - root - INFO - ----Получение единичной записи.
+2025-08-09 07:15:42,357 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:42,358 - root - INFO - ----Получение нескольких записей.
+2025-08-09 07:15:42,361 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
+2025-08-09 07:15:42,362 - root - INFO - ----Получение записей по фильтру внутри кеша.
+2025-08-09 07:15:42,362 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
+2025-08-09 07:15:42,363 - root - INFO - ----Изменение записей по фильтру внутри кеша.
+2025-08-09 07:15:42,364 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
+2025-08-09 07:15:42,364 - root - INFO - ----Добавление записей в кеш.
+2025-08-09 07:15:42,365 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}, {'person.id': 6, 'person.login': 'qqq', 'person.name': 'Anton 6', 'person.ref_address': 0, 'person.age': 0, 'address.id': 6, 'address.street': 'ytutyu', 'address.building': 567}]
+2025-08-09 07:15:42,366 - root - INFO - ----Удаление записи из кеша.
+2025-08-09 07:15:42,366 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 10}]
+2025-08-09 07:15:42,367 - root - INFO - ----Удаление кеша привязаного к запросу.
+2025-08-09 07:15:42,368 - root - DEBUG - []
+2025-08-09 07:15:42,368 - root - INFO - ----Удаление кеша по таблице при изменение данных в таблице.
+2025-08-09 07:15:42,388 - root - INFO - ----Удаление кеша по таблице по запросу.
+2025-08-09 07:15:42,413 - root - INFO - ----Удаление кеша по таблице при изменение данных.
+2025-08-09 07:15:42,441 - root - INFO - -С redis кешем.
+2025-08-09 07:15:42,445 - root - INFO - ----Получение единичной записи.
+2025-08-09 07:15:42,462 - root - DEBUG - [{'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30}]
+2025-08-09 07:15:42,464 - root - INFO - ----Получение нескольких записей.
+2025-08-09 07:15:42,479 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
+2025-08-09 07:15:42,479 - root - INFO - ----Получение записей по фильтру внутри кеша.
+2025-08-09 07:15:42,482 - root - DEBUG - [{'person.id': 1, 'person.login': 'ant', 'person.name': 'Anton 1', 'person.ref_address': 1, 'person.age': 31, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
+2025-08-09 07:15:42,482 - root - INFO - ----Изменение записей по фильтру внутри кеша.
+2025-08-09 07:15:42,492 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
+2025-08-09 07:15:42,493 - root - INFO - ----Добавление записей в кеш.
+2025-08-09 07:15:42,502 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}, {'person.id': 6, 'person.login': 'qqq', 'person.name': 'Anton 6', 'person.ref_address': 0, 'person.age': 0, 'address.id': 6, 'address.street': 'ytutyu', 'address.building': 567}]
+2025-08-09 07:15:42,504 - root - INFO - ----Удаление записи из кеша.
+2025-08-09 07:15:42,517 - root - DEBUG - [{'person.id': 3, 'person.login': 'geg', 'person.name': 'Anton 3', 'person.ref_address': 3, 'person.age': 33, 'address.id': 3, 'address.street': 'Гринвич', 'address.building': 12}, {'person.id': 2, 'person.login': 'mix', 'person.name': 'Anton 2', 'person.ref_address': 2, 'person.age': 30, 'address.id': 2, 'address.street': 'Наумова', 'address.building': 33}, {'person.id': 1, 'person.login': 'ant', 'person.name': 'Tony 1', 'person.ref_address': 1, 'person.age': 32, 'address.id': 1, 'address.street': 'Пушкина', 'address.building': 11}]
+2025-08-09 07:15:42,518 - root - INFO - ----Удаление кеша привязаного к запросу.
+2025-08-09 07:15:42,530 - root - DEBUG - []
+2025-08-09 07:15:42,532 - root - INFO - ----Удаление кеша по таблице при изменение данных в таблице.
+2025-08-09 07:15:42,626 - root - INFO - ----Удаление кеша по таблице по запросу.
+2025-08-09 07:15:42,693 - root - INFO - ----Удаление кеша по таблице при изменение данных.
+2025-08-09 07:15:42,761 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:42,761 - root - INFO - Изменение данных в БД.
+2025-08-09 07:15:42,763 - root - INFO - -С кешем.
+2025-08-09 07:15:42,764 - root - INFO - ----Встатвка данных в БД.
+2025-08-09 07:15:42,779 - root - INFO - ----Изменение данных в БД.
+2025-08-09 07:15:42,796 - root - INFO - ----Удаление данных из БД.
+2025-08-09 07:15:42,818 - root - INFO - -Без кеша.
+2025-08-09 07:15:42,819 - root - INFO - ----Встатвка данных в БД.
+2025-08-09 07:15:42,838 - root - INFO - ----Изменение данных в БД.
+2025-08-09 07:15:42,854 - root - INFO - ----Удаление данных из БД.
+2025-08-09 07:15:42,874 - root - INFO - -redis кеша.
+2025-08-09 07:15:42,876 - root - INFO - ----Встатвка данных в БД.
+2025-08-09 07:15:42,910 - root - INFO - ----Изменение данных в БД.
+2025-08-09 07:15:42,950 - root - INFO - ----Удаление данных из БД.
+2025-08-09 07:15:42,976 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:42,977 - root - INFO - 5. Получение из postgres данных с разными типами и сохранение в кеш redis.
+2025-08-09 07:15:42,982 - root - DEBUG - [{'example_data_types.id': 1, 'example_data_types.jsonb_column': {'key': 'value'}, 'example_data_types.array_column': [1, 2, 3], 'example_data_types.bigint_column': 12345678901234567, 'example_data_types.boolean_column': True, 'example_data_types.timestamp_column': '2025-08-09T07:15:40.381878', 'example_data_types.bytea_column': '3q2+78r+', 'example_data_types.uuid_column': 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'example_data_types.json_column': {'key': 'value'}, 'example_data_types.varchar_column': 'First entry', 'example_data_types.text_array': ['first', 'second']}, {'example_data_types.id': 2, 'example_data_types.jsonb_column': {'baz': [1, 2, 3], 'foo': 'bar'}, 'example_data_types.array_column': [-1, -2, -3], 'example_data_types.bigint_column': 98765432109876543, 'example_data_types.boolean_column': False, 'example_data_types.timestamp_column': '2025-08-09T08:15:40.381878', 'example_data_types.bytea_column': '/u36zt6tvu8=', 'example_data_types.uuid_column': 'f47ac10b-58cc-4372-a567-0e02b2c3d479', 'example_data_types.json_column': {'foo': 'bar', 'baz': [1, 2, 3]}, 'example_data_types.varchar_column': 'Second entry', 'example_data_types.text_array': ['third', 'fourth']}]
+2025-08-09 07:15:42,983 - root - INFO - -------------------------------------------------------
+2025-08-09 07:15:42,985 - root - INFO - 6. Выполнение произвольных запросов.
+2025-08-09 07:15:42,985 - root - INFO - ----На получение данных из БД.
+2025-08-09 07:15:42,987 - root - DEBUG - [(1, 'First entry', 12345678901234567, True, datetime.datetime(2025, 8, 9, 7, 15, 40, 381878), <memory at 0x00000146BF706B00>, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', {'key': 'value'}, {'key': 'value'}, [1, 2, 3], ['first', 'second']), (2, 'Second entry', 98765432109876543, False, datetime.datetime(2025, 8, 9, 8, 15, 40, 381878), <memory at 0x00000146BF706500>, 'f47ac10b-58cc-4372-a567-0e02b2c3d479', {'foo': 'bar', 'baz': [1, 2, 3]}, {'baz': [1, 2, 3], 'foo': 'bar'}, [-1, -2, -3], ['third', 'fourth'])]
+2025-08-09 07:15:42,988 - root - INFO - ----Получение данных и кеширование
+2025-08-09 07:15:42,990 - root - DEBUG - [(1, 'First entry', 12345678901234567, True, datetime.datetime(2025, 8, 9, 7, 15, 40, 381878), <memory at 0x00000146BF706680>, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', {'key': 'value'}, {'key': 'value'}, [1, 2, 3], ['first', 'second']), (2, 'Second entry', 98765432109876543, False, datetime.datetime(2025, 8, 9, 8, 15, 40, 381878), <memory at 0x00000146BF706BC0>, 'f47ac10b-58cc-4372-a567-0e02b2c3d479', {'foo': 'bar', 'baz': [1, 2, 3]}, {'baz': [1, 2, 3], 'foo': 'bar'}, [-1, -2, -3], ['third', 'fourth'])]
+2025-08-09 07:15:42,991 - root - INFO - ----Обновить данные в БД
+2025-08-09 07:15:42,993 - root - INFO - ----Получение данных из кеша
+2025-08-09 07:15:42,993 - root - DEBUG - [[1, 'First entry', 12345678901234567, True, '2025-08-09T07:15:40.381878', '3q2+78r+', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', {'key': 'value'}, {'key': 'value'}, [1, 2, 3], ['first', 'second']], [2, 'Second entry', 98765432109876543, False, '2025-08-09T08:15:40.381878', '/u36zt6tvu8=', 'f47ac10b-58cc-4372-a567-0e02b2c3d479', {'foo': 'bar', 'baz': [1, 2, 3]}, {'baz': [1, 2, 3], 'foo': 'bar'}, [-1, -2, -3], ['third', 'fourth']]]
+2025-08-09 07:15:42,994 - root - INFO - -Выполнение асинхронных произвольных запросов с локальным кешем.
+2025-08-09 07:15:42,995 - root - INFO - ----На получение данных из БД.
+2025-08-09 07:15:43,225 - root - DEBUG - [(2, 'Second entry', 98765432109876543, False, datetime.datetime(2025, 8, 9, 8, 15, 40, 381878), b'\xfe\xed\xfa\xce\xde\xad\xbe\xef', UUID('f47ac10b-58cc-4372-a567-0e02b2c3d479'), '{"foo":"bar","baz":[1,2,3]}', '{"baz": [1, 2, 3], "foo": "bar"}', [-1, -2, -3], ['third', 'fourth']), (1, 'test1', 12345678901234567, True, datetime.datetime(2025, 8, 9, 7, 15, 40, 381878), b'\xde\xad\xbe\xef\xca\xfe', UUID('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'), '{"key":"value"}', '{"key": "value"}', [1, 2, 3], ['first', 'second'])]
+2025-08-09 07:15:43,226 - root - INFO - ----Установить данные в кеш
+2025-08-09 07:15:43,499 - root - DEBUG - [(2, 'Second entry', 98765432109876543, False, datetime.datetime(2025, 8, 9, 8, 15, 40, 381878), b'\xfe\xed\xfa\xce\xde\xad\xbe\xef', UUID('f47ac10b-58cc-4372-a567-0e02b2c3d479'), '{"foo":"bar","baz":[1,2,3]}', '{"baz": [1, 2, 3], "foo": "bar"}', [-1, -2, -3], ['third', 'fourth']), (1, 'test1', 12345678901234567, True, datetime.datetime(2025, 8, 9, 7, 15, 40, 381878), b'\xde\xad\xbe\xef\xca\xfe', UUID('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'), '{"key":"value"}', '{"key": "value"}', [1, 2, 3], ['first', 'second'])]
+2025-08-09 07:15:43,500 - root - INFO - ----Обновить данные в кеще
+2025-08-09 07:15:43,931 - root - DEBUG - [(2, 'Second entry', 98765432109876543, False, datetime.datetime(2025, 8, 9, 8, 15, 40, 381878), b'\xfe\xed\xfa\xce\xde\xad\xbe\xef', UUID('f47ac10b-58cc-4372-a567-0e02b2c3d479'), '{"foo":"bar","baz":[1,2,3]}', '{"baz": [1, 2, 3], "foo": "bar"}', [-1, -2, -3], ['third', 'fourth']), (1, 'test1', 12345678901234567, True, datetime.datetime(2025, 8, 9, 7, 15, 40, 381878), b'\xde\xad\xbe\xef\xca\xfe', UUID('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'), '{"key":"value"}', '{"key": "value"}', [1, 2, 3], ['first', 'second'])]
+2025-08-09 07:15:43,932 - root - INFO - -Выполнение асинхронных произвольных запросов c удаленным кешем.
+2025-08-09 07:15:43,935 - root - INFO - ----На получение данных из БД.
+2025-08-09 07:15:44,240 - root - DEBUG - [(2, 'Second entry', 98765432109876543, False, datetime.datetime(2025, 8, 9, 8, 15, 40, 381878), b'\xfe\xed\xfa\xce\xde\xad\xbe\xef', UUID('f47ac10b-58cc-4372-a567-0e02b2c3d479'), '{"foo":"bar","baz":[1,2,3]}', '{"baz": [1, 2, 3], "foo": "bar"}', [-1, -2, -3], ['third', 'fourth']), (1, 'test1', 12345678901234567, True, datetime.datetime(2025, 8, 9, 7, 15, 40, 381878), b'\xde\xad\xbe\xef\xca\xfe', UUID('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'), '{"key":"value"}', '{"key": "value"}', [1, 2, 3], ['first', 'second'])]
+2025-08-09 07:15:44,240 - root - INFO - ----Обновить данные в БД
+2025-08-09 07:15:44,406 - root - INFO - ----Получение данных из кеша
+2025-08-09 07:15:44,409 - root - DEBUG - [[1, 'First entry', 12345678901234567, True, '2025-08-09T07:15:40.381878', '3q2+78r+', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', {'key': 'value'}, {'key': 'value'}, [1, 2, 3], ['first', 'second']], [2, 'Second entry', 98765432109876543, False, '2025-08-09T08:15:40.381878', '/u36zt6tvu8=', 'f47ac10b-58cc-4372-a567-0e02b2c3d479', {'foo': 'bar', 'baz': [1, 2, 3]}, {'baz': [1, 2, 3], 'foo': 'bar'}, [-1, -2, -3], ['third', 'fourth']]]
+2025-08-09 07:15:44,409 - root - INFO - ----Обновить кеш
+2025-08-09 07:15:44,640 - root - INFO - ----Получение данных из кеша
+2025-08-09 07:15:44,642 - root - DEBUG - [[1, 'test1', 12345678901234567, True, '2025-08-09T07:15:40.381878', '3q2+78r+', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', '{"key":"value"}', '{"key": "value"}', [1, 2, 3], ['first', 'second']], [2, 'test2', 98765432109876543, False, '2025-08-09T08:15:40.381878', '/u36zt6tvu8=', 'f47ac10b-58cc-4372-a567-0e02b2c3d479', '{"foo":"bar","baz":[1,2,3]}', '{"baz": [1, 2, 3], "foo": "bar"}', [-1, -2, -3], ['third', 'fourth']]]
+2025-08-09 07:15:44,643 - root - INFO - ----Удаление кеша по запросу
+2025-08-09 07:15:44,867 - root - INFO - -------------------------------------------------------
