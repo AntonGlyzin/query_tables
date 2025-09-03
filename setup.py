@@ -11,7 +11,13 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name='query_tables',
     version=VERSION_APP,
-    package_data={"": ["LICENSE", ]},
+    package_data={
+        'query_tables': [
+            'locale/*/*/*.mo',
+            'locale/*/*/*.po'
+        ]
+    },
+    include_package_data=True,
     packages=find_packages(),
     install_requires=[
         'cachetools<=6.0.0',

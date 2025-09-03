@@ -2,7 +2,6 @@ import hashlib
 import redis
 import json
 import datetime
-import logging
 import base64
 import uuid
 from threading import RLock
@@ -11,8 +10,8 @@ from dataclasses import dataclass
 from query_tables.cache import BaseCache, TypeCache
 from query_tables.exceptions import NoMatchFieldInCache
 from redis.exceptions import ConnectionError, TimeoutError
-
-logger = logging.getLogger(__name__)
+from query_tables.translate import _
+from query_tables.utils import logger
 
 
 class SyncLockDecorator:
@@ -28,9 +27,9 @@ class SyncLockDecorator:
             try:
                 return self.method(*args, **kwargs)
             except ConnectionError as e:
-                logger.error(f"Произошла ошибка соединения с Redis: {e}")
+                logger.error(_("Произошла ошибка соединения с Redis: {}").format(e))
             except TimeoutError as e:
-                logger.error(f"Время ожидания выполнения команды истекло: {e}")
+                logger.error(_("Время ожидания выполнения команды истекло: {}").format(e))
 
 
 @dataclass

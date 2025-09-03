@@ -1,5 +1,4 @@
 from typing import List, Any, Dict
-import logging
 from psycopg2.pool import ThreadedConnectionPool
 import time
 from dataclasses import dataclass
@@ -7,8 +6,9 @@ import asyncpg
 import asyncio
 from query_tables.db import BasePostgreDBQuery, BaseAsyncPostgreDBQuery
 from query_tables.exceptions import ErrorConnectDB
+from query_tables.translate import _
+from query_tables.utils import logger
 
-logger = logging.getLogger(__name__)
 
 @dataclass
 class DBConfigPg:
@@ -55,7 +55,7 @@ class PostgresQuery(BasePostgreDBQuery):
             )
             return True
         except Exception as e:
-            logger.error(f"Ошибка при подключении к базе данных: {e}")
+            logger.error(_("Ошибка при подключении к базе данных: {}").format(e))
             return False
         
     def __del__(self):
@@ -97,7 +97,7 @@ class PostgresQuery(BasePostgreDBQuery):
             self._cursor.execute(query)
             self._conn.commit()
         except Exception as e:
-            logger.error(f"Ошибка при выполнении SQL-запроса: {e}")
+            logger.error(_("Ошибка при выполнении SQL-запроса: {}").format(e))
         return self
 
     def fetchall(self) -> List[Any]:
@@ -112,7 +112,7 @@ class PostgresQuery(BasePostgreDBQuery):
             if str(e).startswith('no results to fetch'):
                 pass  # Игнорируем ошибку, если операция не возвращает строк
             else:
-                logger.error(f"Ошибка при получение результата из запроса: {e}")
+                logger.error(_("Ошибка при получение результата из запроса: {}").format(e))
 
 
 class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
@@ -134,7 +134,7 @@ class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
             )
             return True
         except Exception as e:
-            logger.error(f"Ошибка при подключении к базе данных: {e}")
+            logger.error(_("Ошибка при подключении к базе данных: {}").format(e))
             return False
 
     async def create_pool(self):
@@ -158,7 +158,7 @@ class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
                 await self.create_pool()
             self._conn = await self._pool.acquire()
         except Exception as e:
-            logger.error(f"Ошибка при открытие соединения с курсором к БД: {e}")
+            logger.error(_("Ошибка при открытие соединения с курсором к БД: {}").format(e))
         return self
 
     async def close(self):
@@ -183,7 +183,7 @@ class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
                 for row in rows
             ]
         except Exception as e:
-            logger.error(f"Ошибка при выполнении SQL-запроса: {e}")
+            logger.error(_("Ошибка при выполнении SQL-запроса: {}").format(e))
         return self
 
     async def fetchall(self) -> List[dict]:

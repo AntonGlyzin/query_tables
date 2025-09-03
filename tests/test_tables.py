@@ -1,12 +1,16 @@
 import shutil
 import os
 import asyncio
+import logging
 from settings import logger, BaseTest, tests_dir
 from query_tables.db import SQLiteQuery, AsyncSQLiteQuery, AsyncPostgresQuery, DBConfigPg, PostgresQuery
 from query_tables.tables import Tables, TablesAsync
 from query_tables.query import Join, LeftJoin
 from query_tables.exceptions import DesabledCache, ErrorExecuteJoinQuery
 from query_tables.cache import RedisCache, RedisConnect, AsyncRedisCache
+# from query_tables.utils import logger as qt_log
+
+# qt_log.setLevel(logging.DEBUG)
 
 
 class TestTables(BaseTest):

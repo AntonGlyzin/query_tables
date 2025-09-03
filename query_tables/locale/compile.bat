@@ -1,0 +1,1 @@
+msgfmt -o ./en/LC_MESSAGES/query_tables.mo ./en/LC_MESSAGES/query_tables.po
