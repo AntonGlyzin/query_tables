@@ -1,8 +1,7 @@
 
 from typing import List, Optional, Union, Type, Tuple
 from query_tables.exceptions import (
-    NotTable, ExceptionQueryTable, 
-    ErrorLoadingStructTables
+    NotTable, ExceptionQueryTable
 )
 from query_tables.query import Query
 from query_tables.cache import CacheQuery, BaseCache, TypeCache, AsyncBaseCache
@@ -38,24 +37,6 @@ class BaseTables(object):
         self._tables: Optional[List[str]] = tables
         self._table_schema: str = table_schema
         self._tables_struct: dict[str, list] = {}
-        
-    @property
-    def _pg_query_struct(self):
-        query = """ 
-            select it.table_name, ic.column_name
-            from information_schema.tables it
-            join information_schema.columns ic on it.table_name = ic.table_name 
-                                                and it.table_schema = ic.table_schema
-            where 1=1 
-        """
-        if self._table_schema:
-            query += f" and it.table_schema = '{self._table_schema}'"
-        if self._prefix_table:
-            query += f" and it.table_name like '{self._prefix_table}%%'"
-        elif self._tables:
-            tables = ', '.join(f"'{i}'" for i in self._tables)
-            query += f" and it.table_name in ({tables})"
-        return query
         
     def __getitem__(self, table_name: str) -> QueryTable:
         """Получение экземпляра для запроса.
@@ -120,14 +101,14 @@ class Tables(BaseTables):
         )
         self._cache = cache or CacheQuery(cache_ttl, cache_maxsize, False, non_expired)
         if TypeCache.remote == self._cache.type_cache:
-            _tables_struct = self._cache._get_struct_tables()
-            if _tables_struct:
-                self._tables_struct = _tables_struct
-                return
-        if DBTypes.postgres == db.get_type():
-            self._fill_tables_pg_struct()
-        elif DBTypes.sqlite == db.get_type():
-            self._fill_tables_sqlite_struct()
+            self._tables_struct = self._cache._get_struct_tables()
+            if self._tables_struct:
+                return None
+        self._tables_struct = self._db.get_tables_struct(
+                table_schema=table_schema,
+                prefix_table=prefix_table,
+                tables=tables
+            )
         if TypeCache.remote == self._cache.type_cache:
             self._cache._save_struct_tables(self._tables_struct)
             
@@ -159,37 +140,6 @@ class Tables(BaseTables):
         if cache:
             self._cache._save_data_query(sql, data)
         return data
-
-    def _fill_tables_pg_struct(self):
-        """
-            Получает таблицы и название колоннок из postgres.
-        """
-        with self._db as db_query:
-            db_query.execute(self._pg_query_struct)
-            data = db_query.fetchall()
-        for row in data:
-            if row[0] in self._tables_struct:
-                self._tables_struct[row[0]].append(row[1])
-            else:
-                self._tables_struct[row[0]] = [row[1]]
-                
-    def _fill_tables_sqlite_struct(self):
-        """
-            Получает таблицы и название колоннок из sqlite.
-        """
-        try:
-            db_query = self._db.connect()
-            db_query.execute("select name from sqlite_master where type='table';")
-            for row in db_query.fetchall():
-                self._tables_struct[row[0]] = []
-            for table in self._tables_struct.keys():
-                db_query.execute(f"PRAGMA table_info({table});")
-                for row in db_query.fetchall():
-                    self._tables_struct[table].append(row[1])
-        except Exception as e:
-            raise ErrorLoadingStructTables(e)
-        finally:
-            self._db.close()
 
 
 class TablesAsync(BaseTables):
@@ -232,14 +182,14 @@ class TablesAsync(BaseTables):
     
     async def init(self):
         if TypeCache.remote == self._cache.type_cache:
-            _tables_struct = await self._cache._get_struct_tables()
-            if _tables_struct:
-                self._tables_struct = _tables_struct
-                return
-        if DBTypes.postgres == self._db.get_type():
-            await self._fill_tables_pg_struct()
-        elif DBTypes.sqlite == self._db.get_type():
-            await self._fill_tables_sqlite_struct()
+            self._tables_struct = await self._cache._get_struct_tables()
+            if self._tables_struct:
+                return None
+        self._tables_struct = await self._db.get_tables_struct(
+                table_schema=self._table_schema,
+                prefix_table=self._prefix_table,
+                tables=self._tables
+            )
         if TypeCache.remote == self._cache.type_cache:
             await self._cache._save_struct_tables(self._tables_struct)
             
@@ -289,36 +239,3 @@ class TablesAsync(BaseTables):
             await self._cache.clear()
         else:
             self._cache.clear()
-    
-    async def _fill_tables_pg_struct(self):
-        """
-            Получает таблицы и название колоннок из postgres.
-        """
-        async with self._db as db_query:
-            await db_query.execute(self._pg_query_struct)
-            data = await db_query.fetchall()
-        for row in data:
-            if row[0] in self._tables_struct:
-                self._tables_struct[row[0]].append(row[1])
-            else:
-                self._tables_struct[row[0]] = [row[1]]
-                
-    async def _fill_tables_sqlite_struct(self):
-        """
-            Получает таблицы и название колоннок из sqlite.
-        """
-        try:
-            db_query = await self._db.connect()
-            await db_query.execute("select name from sqlite_master where type='table';")
-            rows = await db_query.fetchall()
-            for row in rows:
-                self._tables_struct[row[0]] = []
-            for table in self._tables_struct.keys():
-                await db_query.execute(f"PRAGMA table_info({table});")
-                rows = await db_query.fetchall()
-                for row in rows:
-                    self._tables_struct[table].append(row[1])
-        except Exception as e:
-            raise ErrorLoadingStructTables(e)
-        finally:
-            await self._db.close()
