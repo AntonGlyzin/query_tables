@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-03 06:05+0300\n"
+"POT-Creation-Date: 2025-10-05 06:58+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -50,3 +50,75 @@ msgstr "Error getting result from query: {}"
 #, python-brace-format
 msgid "Ошибка при открытие соединения с курсором к БД: {}"
 msgstr "Error opening database cursor connection: {}"
+
+#: C:\Users\Antonio\Desktop\query_tables\query_tables\exceptions.py:18
+#, python-brace-format
+msgid "Таблица '{}' не найдена."
+msgstr "The table '{}' was not found."
+
+#: C:\Users\Antonio\Desktop\query_tables\query_tables\exceptions.py:27
+#, python-brace-format
+msgid "Ошибка в экземпляре QueryTable для таблице '{}' : {}"
+msgstr "Error in the QueryTable instance for the '{}' table : {}"
+
+#: C:\Users\Antonio\Desktop\query_tables\query_tables\exceptions.py:36
+#, python-brace-format
+msgid "В таблице '{}' не найдено поле '{}'."
+msgstr "The '{}' field was not found in the '{}' table."
+
+#: C:\Users\Antonio\Desktop\query_tables\query_tables\exceptions.py:45
+#, python-brace-format
+msgid "Ошибка при конвертации значения '{}'."
+msgstr "Error when converting the value of '{}'."
+
+#: C:\Users\Antonio\Desktop\query_tables\query_tables\exceptions.py:54
+msgid "Ошибка в получение данных из кеша. SQL запрос не был установлен."
+msgstr "Error in getting data from the cache. The SQL query was not installed."
+
+#: C:\Users\Antonio\Desktop\query_tables\query_tables\exceptions.py:63
+msgid "Попытка обращения к несуществующим полям в кеше."
+msgstr "An attempt to access non-existent fields in the cache."
+
+#: C:\Users\Antonio\Desktop\query_tables\query_tables\exceptions.py:72
+#, python-brace-format
+msgid "Ошибка SQL в методе '{}'. Нельзя изменять таблицу c JOIN таблицами."
+msgstr "SQL error in the '{}' method. You cannot modify a table with JOIN tables."
+
+#: C:\Users\Antonio\Desktop\query_tables\query_tables\exceptions.py:81
+#, python-brace-format
+msgid ""
+"Ошибка псевдонима у JOIN таблицы '{}'. Таблица в запросе используется один "
+"раз. Псевдоним не нужен."
+msgstr "Alias error in the JOIN table '{}'. The table is used once in the query. You don't need an alias."
+
+#: C:\Users\Antonio\Desktop\query_tables\query_tables\exceptions.py:90
+#, python-brace-format
+msgid ""
+"Ошибка очишения кеша по таблице '{}'. Нельзя очишать кеш таблицы при JOIN "
+"запросах."
+msgstr "Error clearing the cache according to the '{}' table. You can't clean up the table cache with JOIN requests."
+
+#: C:\Users\Antonio\Desktop\query_tables\query_tables\exceptions.py:99
+msgid "Доступ до кеша не возможен. Кеш отключен."
+msgstr "Access to the cache is not possible. The cache is disabled."
+
+#: C:\Users\Antonio\Desktop\query_tables\query_tables\exceptions.py:108
+#, python-brace-format
+msgid "Ошибка при загрузки структуры таблиц: {}"
+msgstr "Error loading the table structure: {}"
+
+#: C:\Users\Antonio\Desktop\query_tables\query_tables\exceptions.py:117
+#, python-brace-format
+msgid "Ошибка соединения с базой данных: {}"
+msgstr "Database connection error: {}"
+
+#: C:\Users\Antonio\Desktop\query_tables\query_tables\exceptions.py:126
+#, python-brace-format
+msgid "Ошибка при выполнение запроса. {}"
+msgstr "Error when executing the request. {}"
+
+#: C:\Users\Antonio\Desktop\query_tables\query_tables\exceptions.py:135
+#, python-brace-format
+msgid ""
+"Для кеша с типом '{}' невозможно сохранять или загружать структуру таблиц."
+msgstr "It is not possible to save or load the table structure for a cache with type '{}'."
