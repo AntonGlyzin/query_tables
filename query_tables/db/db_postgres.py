@@ -1,4 +1,4 @@
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Tuple
 from psycopg2.pool import ThreadedConnectionPool
 import time
 from dataclasses import dataclass
@@ -177,19 +177,15 @@ class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
             query (str): SQL запрос.
         """
         try:
-            rows = await self._conn.fetch(query)
-            self._res = [
-                tuple(row)
-                for row in rows
-            ]
+            self._res = await self._conn.fetch(query)
         except Exception as e:
             logger.error(_("Ошибка при выполнении SQL-запроса: {}").format(e))
         return self
 
-    async def fetchall(self) -> List[dict]:
+    async def fetchall(self) -> List[Tuple]:
         """Получение данных из запроса.
 
         Returns:
             List: Результирующий список.
         """
-        return self._res
+        return [tuple(row) for row in self._res]

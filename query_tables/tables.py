@@ -3,11 +3,9 @@ from typing import List, Optional, Union, Type, Tuple
 from query_tables.exceptions import (
     NotTable, ExceptionQueryTable
 )
-from query_tables.query import Query
 from query_tables.cache import CacheQuery, BaseCache, TypeCache, AsyncBaseCache
-from query_tables.db import BaseDBQuery, BaseAsyncDBQuery, DBTypes
+from query_tables.db import BaseDBQuery, BaseAsyncDBQuery
 from query_tables.query_table import QueryTable, AsyncQueryTable, AsyncRemoteQueryTable
-
 
 
 class BaseTables(object):
@@ -37,7 +35,7 @@ class BaseTables(object):
         self._tables: Optional[List[str]] = tables
         self._table_schema: str = table_schema
         self._tables_struct: dict[str, list] = {}
-        
+    
     def __getitem__(self, table_name: str) -> QueryTable:
         """Получение экземпляра для запроса.
 
@@ -56,12 +54,12 @@ class BaseTables(object):
             raise NotTable(table_name)
         try:
             return self._cls_query_table(
-                self._db, table_name, fields, 
-                self._cache, Query
+                self._db, table_name, 
+                fields, self._cache
             )
         except Exception as e:
             raise ExceptionQueryTable(table_name, e)
-        
+    
     def clear_cache(self):
         """
             Вызов очищение всего кеша.
@@ -95,11 +93,8 @@ class Tables(BaseTables):
             cache_maxsize (int, optional): Размер элементов в кеше.
             cache (BaseCache, optional): Пользовательская реализация кеша.
         """
-        super().__init__(
-            db, QueryTable, 
-            prefix_table, tables, table_schema
-        )
-        self._cache = cache or CacheQuery(cache_ttl, cache_maxsize, False, non_expired)
+        super().__init__(db, QueryTable, prefix_table, tables, table_schema)
+        self._cache = cache or CacheQuery(cache_ttl, cache_maxsize, non_expired, False)
         if TypeCache.remote == self._cache.type_cache:
             self._tables_struct = self._cache._get_struct_tables()
             if self._tables_struct:
@@ -111,7 +106,7 @@ class Tables(BaseTables):
             )
         if TypeCache.remote == self._cache.type_cache:
             self._cache._save_struct_tables(self._tables_struct)
-            
+    
     def query(
         self, sql: str,
         cache: bool = False,
@@ -174,11 +169,8 @@ class TablesAsync(BaseTables):
         cls_query_table = AsyncQueryTable
         if cache and (TypeCache.remote == cache.type_cache):
             cls_query_table = AsyncRemoteQueryTable
-        super().__init__(
-            db, cls_query_table, 
-            prefix_table, tables, table_schema
-        )
-        self._cache = cache or CacheQuery(cache_ttl, cache_maxsize, True, non_expired)
+        super().__init__(db, cls_query_table, prefix_table, tables, table_schema)
+        self._cache = cache or CacheQuery(cache_ttl, cache_maxsize, non_expired, True)
     
     async def init(self):
         if TypeCache.remote == self._cache.type_cache:
@@ -192,7 +184,7 @@ class TablesAsync(BaseTables):
             )
         if TypeCache.remote == self._cache.type_cache:
             await self._cache._save_struct_tables(self._tables_struct)
-            
+    
     async def query(
         self, sql: str,
         cache: bool = False,
@@ -230,7 +222,7 @@ class TablesAsync(BaseTables):
             else:
                 self._cache._save_data_query(sql, data)
         return data
-            
+    
     async def clear_cache(self):
         """
             Вызов очищение всего кеша.

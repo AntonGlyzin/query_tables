@@ -1,4 +1,3 @@
-from markupsafe import escape
 from typing import Union, Any, List, Optional, Dict
 from query_tables.query import BaseJoin, BaseQuery
 from query_tables.exceptions import (
@@ -20,15 +19,15 @@ class Query(BaseQuery):
         """
         self._table_name = table_name
         self._fields = fields # Все поля в формате <поле> из текущей таблицы.
-        self._user_fields = [] # Пользовательские подля в формате <поле> текущей таблицы.
+        self._user_fields = [] # Пользовательские поля в формате <поле> текущей таблицы.
         # Формат поля <таблица>.<поле> 
         self._map_select = [
             f'{self._table_name}.{field}' for field in self._fields
         ]
         self._from = f' from {self._table_name}'
-        self._delete = f'delete from {self._table_name} '
-        self._insert = f'insert into {self._table_name} '
-        self._update = f'update {self._table_name} set '
+        self._sql_delete = f'delete from {self._table_name} '
+        self._sql_insert = f'insert into {self._table_name} '
+        self._sql_update = f'update {self._table_name} set '
         self._join = ''
         self._joined_tables: List[BaseQuery] = []
         self._where = ''
@@ -131,7 +130,7 @@ class Query(BaseQuery):
         self._joined_tables.extend(table._joined_tables)
         table._joined_tables.clear()    
         self._join += (
-            f" {table.join_method} ({table.get()}) as {table_alias} "
+            f" {table.join_method} ({table._get()}) as {table_alias} "
             f"on {table_alias}.{table.join_field} = {self._table_name}.{table.ext_field}"
         ) + table._join
         table._join = ''
@@ -147,12 +146,12 @@ class Query(BaseQuery):
             BaseQuery: Экземпляр запроса.
         """
         where = []
-        for field, value in params.items():
-            _field, operator = self._get_operator_by_field(field)
-            self._exist_field(_field)
+        for field_op, value in params.items():
+            field, operator = self._get_operator_by_field(field_op)
+            self._exist_field(field)
             val = self._convert_simple_format_data(value)
             where.append(
-                f'{self._table_name}.{_field} {operator} {val}'
+                f'{self._table_name}.{field} {operator} {val}'
             )
         if where:
             self._where = ' where '
@@ -186,8 +185,19 @@ class Query(BaseQuery):
         """
         self._limit = f' limit {value}'
         return self
-
+    
     def get(self) -> str:
+        """Запрос на получение записей.
+        
+        Raises:
+            ErrorAliasTableJoinQuery: Ошибка псевдонима JOIN таблиц.
+
+        Returns:
+            str: SQL запрос.
+        """
+        return self._get()
+    
+    def _get(self) -> str:
         """Запрос на получение записей.
         
         Raises:
@@ -218,8 +228,22 @@ class Query(BaseQuery):
             f"{self._order_by}"
             f"{self._limit}"
         ).strip()
-
+        
     def update(self, **params) -> str:
+        """Запрос на обновление записей по фильтру.
+        
+        Args:
+            params: Параметры которые будут обновляться.
+            
+        Raise:
+            ErrorExecuteJoinQuery: Запретить выполнять с join таблицами.
+
+        Returns:
+            str: SQL запрос.
+        """
+        return self._update(**params)
+
+    def _update(self, **params) -> str:
         """Запрос на обновление записей по фильтру.
         
         Args:
@@ -242,13 +266,26 @@ class Query(BaseQuery):
         if fields:
             set_fields = ', '.join(fields)
         return (
-            f"{self._update}"
+            f"{self._sql_update}"
             f"{set_fields}"
             f"{self._where}"
         ).strip()
-        
-
+    
     def insert(self, records: List[Dict]) -> str:
+        """Вставка записи.
+        
+        Args:
+            params: Строка для вставки.
+            
+        Raise:
+            ErrorExecuteJoinQuery: Запретить выполнять с join таблицами.
+
+        Returns:
+            str: SQL запрос.
+        """
+        return self._insert(records)
+
+    def _insert(self, records: List[Dict]) -> str:
         """Вставка записи.
         
         Args:
@@ -276,7 +313,7 @@ class Query(BaseQuery):
         text_fields = '({})'.format(', '.join(fields))
         text_values = ' values {}'.format(', '.join(into_values))
         return (
-            f"{self._insert}"
+            f"{self._sql_insert}"
             f'{text_fields}'
             f'{text_values}'
         ).strip()
@@ -290,15 +327,28 @@ class Query(BaseQuery):
         Returns:
             str: SQL запрос.
         """ 
+        return self._delete()
+        
+    def _delete(self) -> str:
+        """Запрос на удаление записей.
+        
+        Raise:
+            ErrorExecuteJoinQuery: Запретить выполнять с join таблицами.
+
+        Returns:
+            str: SQL запрос.
+        """ 
         if self.is_table_joined:
             raise ErrorExecuteJoinQuery('delete')
         return (
-            f"{self._delete}"
+            f"{self._sql_delete}"
             f"{self._where}"
         ).strip()
         
     def _exist_fields_identity(
-        self, fields: List, exclude_fields: Optional[List] = None, exception: bool = True
+        self, fields: List, 
+        exclude_fields: Optional[List] = None, 
+        exception: bool = True
     ) -> bool:
         """Проверить что все поля в таблицы предоставлены в списке.
 
@@ -415,6 +465,6 @@ class Query(BaseQuery):
         elif isinstance(value, (int, float)):
             return f'{value}'
         elif isinstance(value, str):
-            new_value = escape(value)
+            new_value = value.replace("'", "''").replace('\\', '\\\\')
             return f"'{new_value}'"
         raise ErrorConvertDataQuery(value)

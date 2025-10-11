@@ -29,16 +29,16 @@ class CacheQuery(BaseCache):
     def __init__(
         self, ttl: int = 0, 
         maxsize: int = 1024,
-        use_async: bool = False,
-        non_expired: bool = False
+        non_expired: bool = False,
+        use_async: bool = False
     ):
         """
         
         Args:
             ttl (int, optional): Время кеша запроса. По умолчанию 0 секунд - кеширование отключено.
             maxsize (int, optional): Размер кеша.
-            use_async (bool, optional): Включить если ваш код асинхронный.
             non_expired (bool, optional): Если нужен кеш без истечения времени.
+            use_async (bool, optional): Включить если ваш код асинхронный.
         """
         self._ttl = ttl
         self._maxsize = maxsize
@@ -72,7 +72,7 @@ class CacheQuery(BaseCache):
                 self, method.__name__, 
                 SyncLockDecorator(method, self._rlock)
             )
-            
+    
     def is_enabled_cache(self) -> bool:
         """
             Включен ли кеш.
