@@ -121,81 +121,6 @@ class QueryTable(Query):
 
 class AsyncQueryTable(QueryTable):
     """
-        Объединяет работу с запросами в асинхронном режиме и локальным кешем.
-    """    
-    def __init__(
-        self, db: object, 
-        table_name: str,
-        fields: List[str],
-        cache: BaseCache
-    ):
-        """
-        Args:
-            db (BaseAsyncDBQuery): Объект для доступа к БД.
-            table_name (str): Название таблицы.
-            fields List[str]: Список полей.
-            cache (BaseCache): Кеш.
-        """
-        super().__init__(db, table_name, fields, cache)
-    
-    async def get(self) -> List[Dict]:
-        """
-            Запрос на получение записей.
-        """
-        query = self._get()
-        if self._cache.is_enabled_cache():
-            cache_data = self._cache[query].get()
-            if cache_data:
-                return cache_data
-        async with self._db as db_query:
-            await db_query.execute(query)
-            data = await db_query.fetchall()
-        res = [
-            dict(zip(self.map_fields, row)) for row in data
-        ]
-        if self._cache.is_enabled_cache() and res:
-            self._cache[query] = res
-        return res
-
-    async def insert(self, records: List[Dict]): 
-        """Добавляет записи в БД и удаляет 
-            кеш (если включен) по данной таблице.
-
-        Args:
-            records (List[Dict]): Записи для вставки в БД.
-        """        
-        query = self._insert(records)
-        async with self._db as db_query:
-            await db_query.execute(query)
-        if self._cache.is_enabled_cache():
-            self.delete_cache_table()
-
-    async def update(self, **params):
-        """Обнавляет записи в БД и удаляет 
-            кеш (если включен) по данной таблице.
-
-        Args:
-            params: Параметры обновления.
-        """
-        query = self._update(**params)
-        async with self._db as db_query:
-            await db_query.execute(query)
-        if self._cache.is_enabled_cache():
-            self.delete_cache_table()
-
-    async def delete(self):
-        """Удаляет записи из БД и удаляет 
-            кеш (если включен) по данной таблице.
-        """
-        query = self._delete()
-        async with self._db as db_query:
-            await db_query.execute(query)
-        if self._cache.is_enabled_cache():
-            self.delete_cache_table()
-
-
-class AsyncRemoteQueryTable(QueryTable):
-    """
         Объединяет работу с запросами и удаленным кешем в асинхронном режиме.
     """    
     def __init__(
@@ -230,8 +155,7 @@ class AsyncRemoteQueryTable(QueryTable):
         enabled = await self._cache.is_enabled_cache()
         if not enabled:
             raise DesabledCache()
-        query = self._get()
-        await self._cache[query].delete_query()
+        await self.cache.delete_query()
 
     async def delete_cache_table(self):
         """
@@ -243,7 +167,7 @@ class AsyncRemoteQueryTable(QueryTable):
         if self.is_table_joined:
             raise ErrorDeleteCacheJoin(self._table_name)
         await self._cache.delete_cache_table(self._table_name)
-        
+    
     async def get(self) -> List[Dict]:
         """
             Запрос на получение записей.

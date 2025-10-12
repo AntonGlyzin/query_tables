@@ -49,11 +49,15 @@ class AsyncRedisCache(AsyncBaseCache):
             self.is_enabled_cache,
             self.clear,
             self.delete_cache_table,
+            self.get,
             self.set_data,
             self.delete_query,
             self.insert,
             self.update,
-            self.delete
+            self.delete,
+            self.get_data_query,
+            self.save_data_query,
+            self.delete_data_query
         ]
         for method in lock_methods:
             setattr(
@@ -251,7 +255,7 @@ class AsyncRedisCache(AsyncBaseCache):
         self._filter_params.clear()
         return deleted
     
-    async def _get_data_query(self, query: str) -> Union[List[List], List]:
+    async def get_data_query(self, query: str) -> Union[List[List], List]:
         """Получает данные из произвольного запроса.
 
         Args:
@@ -267,7 +271,7 @@ class AsyncRedisCache(AsyncBaseCache):
             return json.loads(res_str)
         return []
         
-    async def _save_data_query(self, query: str, data: List[Tuple]):
+    async def save_data_query(self, query: str, data: List[Tuple]):
         """Сохраняет даннные произвольного запроса в кеш.
 
         Args:
@@ -278,7 +282,7 @@ class AsyncRedisCache(AsyncBaseCache):
         async with self._redis as client:
             await client.set(f'{self._key_queries}:{hashkey}', self._encode_data(data))
             
-    async def _delete_data_query(self, query: str):
+    async def delete_data_query(self, query: str):
         """Удаляет даннные произвольного запроса из кеша.
 
         Args:

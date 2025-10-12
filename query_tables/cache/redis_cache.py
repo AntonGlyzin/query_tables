@@ -83,7 +83,10 @@ class RedisCache(BaseCache):
             self.get,
             self.insert,
             self.update,
-            self.delete
+            self.delete,
+            self.get_data_query,
+            self.save_data_query,
+            self.delete_data_query
         ]
         for method in lock_methods:
             setattr(
@@ -275,7 +278,7 @@ class RedisCache(BaseCache):
         self._filter_params.clear()
         return deleted
     
-    def _get_data_query(self, query: str) -> Union[List[List], List]:
+    def get_data_query(self, query: str) -> Union[List[List], List]:
         """Получает данные из произвольного запроса.
 
         Args:
@@ -290,7 +293,7 @@ class RedisCache(BaseCache):
             return json.loads(res_str)
         return []
         
-    def _save_data_query(self, query: str, data: List[Tuple]):
+    def save_data_query(self, query: str, data: List[Tuple]):
         """Сохраняет даннные произвольного запроса в кеш.
 
         Args:
@@ -300,7 +303,7 @@ class RedisCache(BaseCache):
         hashkey = self._get_hashkey_query(query)
         self._redis.set(f'{self._key_queries}:{hashkey}', self._encode_data(data))
         
-    def _delete_data_query(self, query: str):
+    def delete_data_query(self, query: str):
         """Удаляет даннные произвольного запроса из кеша.
 
         Args:

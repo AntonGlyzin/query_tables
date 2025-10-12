@@ -3,9 +3,9 @@ from typing import List, Optional, Union, Type, Tuple
 from query_tables.exceptions import (
     NotTable, ExceptionQueryTable
 )
-from query_tables.cache import CacheQuery, BaseCache, TypeCache, AsyncBaseCache
+from query_tables.cache import CacheQuery, BaseCache, TypeCache, AsyncBaseCache, AsyncCacheQuery
 from query_tables.db import BaseDBQuery, BaseAsyncDBQuery
-from query_tables.query_table import QueryTable, AsyncQueryTable, AsyncRemoteQueryTable
+from query_tables.query_table import QueryTable, AsyncQueryTable
 
 
 class BaseTables(object):
@@ -59,12 +59,6 @@ class BaseTables(object):
             )
         except Exception as e:
             raise ExceptionQueryTable(table_name, e)
-    
-    def clear_cache(self):
-        """
-            Вызов очищение всего кеша.
-        """        
-        self._cache.clear()
 
 
 class Tables(BaseTables):
@@ -94,7 +88,7 @@ class Tables(BaseTables):
             cache (BaseCache, optional): Пользовательская реализация кеша.
         """
         super().__init__(db, QueryTable, prefix_table, tables, table_schema)
-        self._cache = cache or CacheQuery(cache_ttl, cache_maxsize, non_expired, False)
+        self._cache = cache or CacheQuery(cache_ttl, cache_maxsize, non_expired)
         if TypeCache.remote == self._cache.type_cache:
             self._tables_struct = self._cache._get_struct_tables()
             if self._tables_struct:
@@ -117,24 +111,30 @@ class Tables(BaseTables):
 
         Args:
             sql (str): SQL запрос.
-            cache (bool): Работать ли с кешем.
+            cache (bool): Подгружать и сохранять данные в кеше.
             delete_cache (bool): Удалить данные из кеша, если они там есть.
 
         Returns:
             Optional[List[Tuple]]: Результат.
         """
         if delete_cache:
-            data = self._cache._delete_data_query(sql)
+            data = self._cache.delete_data_query(sql)
         if cache:
-            data = self._cache._get_data_query(sql)
+            data = self._cache.get_data_query(sql)
             if data:
                 return data
         with self._db as db_query:
             db_query.execute(sql)
             data = db_query.fetchall()
         if cache:
-            self._cache._save_data_query(sql, data)
+            self._cache.save_data_query(sql, data)
         return data
+    
+    def clear_cache(self):
+        """
+            Вызов очищение всего кеша.
+        """        
+        self._cache.clear()
 
 
 class TablesAsync(BaseTables):
@@ -149,7 +149,6 @@ class TablesAsync(BaseTables):
         table_schema:str = 'public',
         cache_ttl: int = 0,
         non_expired: bool = False,
-        cache_maxsize: int = 1024,
         cache: Optional[Union[BaseCache, AsyncBaseCache]] = None
     ):
         """
@@ -161,16 +160,11 @@ class TablesAsync(BaseTables):
             table_schema (str, optional): Схема данных. По умолчанию - 'public'.
             cache_ttl (int, optional): Время кеширования данных. По умолчанию 0 секунд - кеширование отключено.
             non_expired (bool, optional): Вечный кеш без времени истечения. По умолчанию - выключен.
-                Если включить, будет использоваться вне зависимости от cache_ttl.
                 При non_expired=False и cache_ttl=0 - кеш отключен.
-            cache_maxsize (int, optional): Размер элементов в кеше.
             cache (AsyncBaseCache, optional): Пользовательская реализация кеша.
         """
-        cls_query_table = AsyncQueryTable
-        if cache and (TypeCache.remote == cache.type_cache):
-            cls_query_table = AsyncRemoteQueryTable
-        super().__init__(db, cls_query_table, prefix_table, tables, table_schema)
-        self._cache = cache or CacheQuery(cache_ttl, cache_maxsize, non_expired, True)
+        super().__init__(db, AsyncQueryTable, prefix_table, tables, table_schema)
+        self._cache = cache or AsyncCacheQuery(cache_ttl, non_expired)
     
     async def init(self):
         if TypeCache.remote == self._cache.type_cache:
@@ -202,32 +196,20 @@ class TablesAsync(BaseTables):
             Optional[List[Tuple]]: Результат.
         """
         if delete_cache:
-            if TypeCache.remote == self._cache.type_cache:
-                data = await self._cache._delete_data_query(sql)
-            else:
-                data = self._cache._delete_data_query(sql)
+            data = await self._cache.delete_data_query(sql)
         if cache:
-            if TypeCache.remote == self._cache.type_cache:
-                data = await self._cache._get_data_query(sql)
-            else:
-                data = self._cache._get_data_query(sql)
+            data = await self._cache.get_data_query(sql)
             if data:
                 return data
         async with self._db as db_query:
             await db_query.execute(sql)
             data = await db_query.fetchall()
         if cache:
-            if TypeCache.remote == self._cache.type_cache:
-                await self._cache._save_data_query(sql, data)
-            else:
-                self._cache._save_data_query(sql, data)
+            await self._cache.save_data_query(sql, data)
         return data
     
     async def clear_cache(self):
         """
             Вызов очищение всего кеша.
         """
-        if TypeCache.remote == self._cache.type_cache:
-            await self._cache.clear()
-        else:
-            self._cache.clear()
+        await self._cache.clear()

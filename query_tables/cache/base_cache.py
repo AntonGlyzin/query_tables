@@ -122,7 +122,7 @@ class BaseCache(ABC):
         """        
         ...
         
-    def _get_data_query(self, query: str) -> Union[List[List], List]:
+    def get_data_query(self, query: str) -> Union[List[List], List]:
         """Получает данные из произвольного запроса.
 
         Args:
@@ -133,7 +133,7 @@ class BaseCache(ABC):
         """        
         ...
         
-    def _save_data_query(self, query: str, data: List[Tuple]):
+    def save_data_query(self, query: str, data: List[Tuple]):
         """Сохраняет даннные произвольного запроса в кеш.
 
         Args:
@@ -142,7 +142,7 @@ class BaseCache(ABC):
         """        
         ...
         
-    def _delete_data_query(self, query: str):
+    def delete_data_query(self, query: str):
         """Удаляет даннные произвольного запроса из кеша.
 
         Args:
@@ -276,7 +276,7 @@ class AsyncBaseCache(ABC):
         """        
         ...
         
-    async def _get_data_query(self, query: str) -> Union[List[List], List]:
+    async def get_data_query(self, query: str) -> Union[List[List], List]:
         """Получает данные из произвольного запроса.
 
         Args:
@@ -287,7 +287,7 @@ class AsyncBaseCache(ABC):
         """        
         ...
         
-    async def _save_data_query(self, query: str, data: List[Tuple]):
+    async def save_data_query(self, query: str, data: List[Tuple]):
         """Сохраняет даннные произвольного запроса в кеш.
 
         Args:
@@ -296,7 +296,7 @@ class AsyncBaseCache(ABC):
         """        
         ...
         
-    async def _delete_data_query(self, query: str):
+    async def delete_data_query(self, query: str):
         """Удаляет даннные произвольного запроса из кеша.
 
         Args:

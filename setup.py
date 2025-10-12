@@ -25,7 +25,8 @@ setup(
         'psycopg2<=2.9.10',
         'asyncpg<=0.30.0',
         'redis<=6.2.0',
-        'MarkupSafe<=3.0.2'
+        'MarkupSafe<=3.0.2',
+        'aiocache<=0.12.3'
     ],
     python_requires=">=3.9",
     author='Антон Глызин',
@@ -34,7 +35,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     license='MIT',
-    keywords='cache orm sql table redis postgres sqlite asyncio python',
+    keywords='cache aiocache orm sql table redis postgres sqlite asyncio python',
     classifiers=[
         'Intended Audience :: Developers',
         "Programming Language :: Python :: 3.9",

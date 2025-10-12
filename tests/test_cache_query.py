@@ -1,8 +1,10 @@
 from settings import logger, BaseTest
 from threading import Thread, RLock
 import time
+from query_tables.cache import AsyncCacheQuery
 from query_tables.cache.cache_query import CacheQuery, SyncLockDecorator
 from query_tables.exceptions import NoMatchFieldInCache
+import asyncio
 
 rlock = RLock()
 
@@ -85,39 +87,9 @@ class TestCacheQuery(BaseTest):
         self.assertEqual(q.get(timeout=4), 'Удаление отработано.')
         logger.info('----Порядок выполнений операций не нарушен.')
         logger.info("-------------------------------------------------------")
-        
+    
     def test_case_3(self):
-        logger.info('3. Асинхроность.')
-        import asyncio
-        
-        cache = CacheQuery(ttl=300, use_async=True)
-        
-        async def main():
-            logger.info('----Запись в кеш.')
-            query1 = "очень длинная строка sql запроса 1"
-            cache[query1] = [
-                { 'person.id': 1, 'person.name': 'Anton' }
-            ]
-            
-            query2 = "очень длинная строка sql запроса 2"
-            cache[query2] = [
-                { 'person.id': 1, 'person.name': 'Anton', 'company.id': 1, 'company.name': 'SD' }
-            ]
-            logger.info('----Чтение записей из кеша.')
-            self.assertIsInstance(cache[query1].get(), list)
-            self.assertListEqual(cache[query1].get(), [{ 'person.id': 1, 'person.name': 'Anton' }])
-            self.assertListEqual(cache[query2].get(), [{ 'person.id': 1, 'person.name': 'Anton', 'company.id': 1, 'company.name': 'SD' }])
-            
-            logger.info('----Удаление закешированные записи связанные с таблицей person.')
-            cache.delete_cache_table('person')
-            self.assertFalse(cache[query1].get())
-            self.assertFalse(cache[query2].get())
-            
-        asyncio.run(main())
-        logger.info("-------------------------------------------------------")
-        
-    def test_case_4(self):
-        logger.info('4. Изменение единичной записи в кеше по ссылки.')
+        logger.info('3. Изменение единичной записи в кеше по ссылки.')
         cache = CacheQuery(ttl=300)
         logger.info('----Запись в кеш.')
         query1 = "очень длинная строка sql запроса 1"
@@ -156,9 +128,9 @@ class TestCacheQuery(BaseTest):
                 break
         self.assertDictEqual(cache[query1].get()[index], { 'person.id': 4, 'person.name': 'Tony 3' })
         logger.info("-------------------------------------------------------")
-        
-    def test_case_5(self):
-        logger.info('5. Получение и изменение данных в кеше по фильтрации.')
+    
+    def test_case_4(self):
+        logger.info('4. Получение и изменение данных в кеше по фильтрации.')
         cache = CacheQuery(non_expired=True) #вечный кеш
         logger.info('----Запись в кеш.')
         query1 = "очень длинная строка sql запроса 1"
@@ -192,6 +164,82 @@ class TestCacheQuery(BaseTest):
         with self.assertRaises(NoMatchFieldInCache):
             cache[query1].insert({ 'person.id': 5 })
         logger.info("-------------------------------------------------------")
+    
+    def test_case_5(self):
+        logger.info('5. Асинхронный кеш.')
+        loop = asyncio.new_event_loop()
+        self.async_cache=AsyncCacheQuery(non_expired=True)
+        async def test1():
+            logger.info(' Получение и удаление данных из кеша по sql запросу.')
+            logger.info('----Запись в кеш.')
+            query1 = "очень длинная строка sql запроса 1"
+            await self.async_cache[query1].set_data([
+                { 'person.id': 1, 'person.name': 'Anton' }
+            ])
+            
+            query2 = "очень длинная строка sql запроса 2"
+            await self.async_cache[query2].set_data([
+                { 'person.id': 1, 'person.name': 'Anton', 'company.id': 1, 'company.name': 'SD' }
+            ])
+            
+            query3 = "очень длинная строка sql запроса 3"
+            await self.async_cache[query3].set_data([
+                { 'company.id': 1, 'company.name': 'SD', 'address.id': 1, 'address.name': '33' }
+            ])
+            logger.info('----Чтение записей из кеша.')
+            self.assertIsInstance(await self.async_cache[query1].get(), list)
+            self.assertListEqual(await self.async_cache[query1].get(), [{ 'person.id': 1, 'person.name': 'Anton' }])
+            self.assertListEqual(await self.async_cache[query2].get(), [{ 'person.id': 1, 'person.name': 'Anton', 'company.id': 1, 'company.name': 'SD' }])
+            self.assertListEqual(await self.async_cache[query3].get(), [{ 'company.id': 1, 'company.name': 'SD', 'address.id': 1, 'address.name': '33' }])
+            
+            logger.info('----Удаление закешированные записи связанные с таблицей person.')
+            await self.async_cache.delete_cache_table('person')
+            self.assertFalse(await self.async_cache[query1].get())
+            self.assertFalse(await self.async_cache[query2].get())
+            self.assertListEqual(await self.async_cache[query3].get(), [{ 'company.id': 1, 'company.name': 'SD', 'address.id': 1, 'address.name': '33' }])
+            
+            logger.info('----Удаление закешированную запись по sql запросу.')
+            await self.async_cache[query3].delete_query()
+            self.assertFalse(await self.async_cache[query3].get())
+            
+        async def test2():
+            logger.info(' Получение и изменение данных в кеше по фильтрации.')
+        
+            logger.info('----Запись в кеш.')
+            query1 = "очень длинная строка sql запроса 11"
+            await self.async_cache[query1].set_data([
+                { 'person.id': 1, 'person.name': 'Anton 1' },
+                { 'person.id': 2, 'person.name': 'Anton 2' },
+                { 'person.id': 3, 'person.name': 'Anton 3' }
+            ])
+            logger.info('----Получение по фильтрации.')
+            pers1 = await self.async_cache[query1].filter({ 'person.id': 2 }).get()
+            self.assertDictEqual(pers1[0], { 'person.id': 2, 'person.name': 'Anton 2' })
+            
+            logger.info('----Обновление записи по фильтрации.')
+            await self.async_cache[query1].filter({ 'person.id': 2 }).update({ 'person.name': 'Tony 2' })
+            pers2 = await self.async_cache[query1].filter({ 'person.id': 2 }).get()
+            self.assertDictEqual(pers2[0], { 'person.id': 2, 'person.name': 'Tony 2' })
+            
+            logger.info('----Удаление записи по фильтрации.')
+            await self.async_cache[query1].filter({ 'person.id': 2 }).delete()
+            self.assertFalse(await self.async_cache[query1].filter({ 'person.id': 2 }).get())
+            self.assertEqual(len(await self.async_cache[query1].get()), 2)
+            
+            logger.info('----Добавление записи в кеш.')
+            await self.async_cache[query1].insert({ 'person.id': 2, 'person.name': 'Anton 2' })
+            self.assertEqual(len(await self.async_cache[query1].get()), 3)
+            
+            logger.info('----Добавление записи с не правильными полями в кеш.')
+            with self.assertRaises(NoMatchFieldInCache):
+                await self.async_cache[query1].insert({ 'person.id': 5, 'person.name12': 'Anton 2' })
+                
+            with self.assertRaises(NoMatchFieldInCache):
+                await self.async_cache[query1].insert({ 'person.id': 5 })
+            logger.info("-------------------------------------------------------")
+        
+        loop.run_until_complete(test1())
+        loop.run_until_complete(test2())
 
 
 if __name__ == "__main__":

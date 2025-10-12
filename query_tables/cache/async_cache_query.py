@@ -1,63 +1,52 @@
 import hashlib
-from cachetools import TTLCache, LRUCache
-from typing import Union, List, Dict, Iterator, Optional, Tuple
-from threading import RLock
+from typing import Union, List, Dict, Optional, Tuple, Any
 from query_tables.exceptions import NotQuery, NoMatchFieldInCache, DesabledCache
-from query_tables.cache import BaseCache, TypeCache
+from query_tables.cache import AsyncBaseCache, TypeCache
+import asyncio
+from aiocache import Cache
 
 
-class SyncLockDecorator:
+class AsyncLockDecorator:
     """
-        Обертка для методов в многопоточном приложение.
+        Обертка для async.
     """    
-    def __init__(self, method, rlock):
+    def __init__(self, method, lock):
         self.method = method
-        self.rlock = rlock
+        self.lock = lock
 
-    def __call__(self, *args, **kwargs):
-        with self.rlock:
-            return self.method(*args, **kwargs)
+    async def __call__(self, *args, **kwargs):
+        async with self.lock:
+            return await self.method(*args, **kwargs)
 
 
-class CacheQuery(BaseCache):
+class AsyncCacheQuery(AsyncBaseCache):
     """
-        Синхронно-асинхронное кеширование данных в памяти процесса на основе запроса к БД.
+        Асинхронное кеширование данных в памяти процесса на основе запроса к БД.
     """
     
     type_cache = TypeCache.local
     
-    def __init__(
-        self, ttl: int = 0, 
-        maxsize: int = 1024,
-        non_expired: bool = False
-    ):
+    def __init__(self, ttl: int = 0, non_expired: bool = False):
         """
         
         Args:
             ttl (int, optional): Время кеша запроса. По умолчанию 0 секунд - кеширование отключено.
-            maxsize (int, optional): Размер кеша.
             non_expired (bool, optional): Если нужен кеш без истечения времени.
         """
         self._ttl = ttl
-        self._maxsize = maxsize
         self._non_expired = non_expired
         self._hashkey = '' # хэш от SQL запроса
         self._filter_params = {}
-        self._tables = LRUCache(maxsize=maxsize) # в каких запросах участвует таблица
-        self._cache = (
-            LRUCache(maxsize=maxsize)
-            if non_expired 
-            else TTLCache(ttl=ttl, maxsize=maxsize) 
-        )
-        self._rlock = RLock()
+        self._tables = Cache(Cache.MEMORY)
+        self._cache = Cache(Cache.MEMORY)
+        self._lock = asyncio.Lock()
         lock_methods = [
+            self.is_enabled_cache,
             self.clear,
             self.delete_cache_table,
-            self._getitem_,
-            self._setitem_,
-            self._delitem_,
-            self.filter,
             self.get,
+            self.set_data,
+            self.delete_query,
             self.insert,
             self.update,
             self.delete,
@@ -68,23 +57,23 @@ class CacheQuery(BaseCache):
         for method in lock_methods:
             setattr(
                 self, method.__name__, 
-                SyncLockDecorator(method, self._rlock)
+                AsyncLockDecorator(method, self._lock)
             )
     
-    def is_enabled_cache(self) -> bool:
+    async def is_enabled_cache(self) -> bool:
         """
             Включен ли кеш.
         """        
         return self._non_expired or bool(self._ttl)
 
-    def clear(self):
+    async def clear(self):
         """
             Очищение кеша.
         """
-        self._cache.clear()
-        self._tables.clear()
+        await self._cache.clear()
+        await self._tables.clear()
 
-    def delete_cache_table(self, table: str) -> bool:
+    async def delete_cache_table(self, table: str) -> bool:
         """Удаление кеша по таблице. Вседу, где использовалась таблица.
 
         Args:
@@ -93,16 +82,15 @@ class CacheQuery(BaseCache):
         Returns:
             bool: Флаг успешности.
         """
-        if not self._tables.get(table):
+        hashkeys = await self._tables.get(table)
+        if not hashkeys:
             return False
-        # копируем список
-        hashkeys = [*self._tables[table]]
-        for hashkey in hashkeys:
-            self._cache.pop(hashkey, None)
-            self._delete_hashkey_in_tables(hashkey)
+        for hashkey in [*hashkeys]:
+            await self._cache.delete(hashkey)
+            await self._delete_hashkey_in_tables(hashkey)
         return True
         
-    def __getitem__(self, query: str) -> 'BaseCache':
+    def __getitem__(self, query: str) -> 'AsyncBaseCache':
         """Устанавливает контекст SQL запроса.
 
         Args:
@@ -113,15 +101,12 @@ class CacheQuery(BaseCache):
         """
         if not query:
             raise NotQuery()
-        if not self.is_enabled_cache():
+        if not (self._non_expired or bool(self._ttl)):
             raise DesabledCache()
-        return self._getitem_(query)
-    
-    def _getitem_(self, query: str) -> 'BaseCache':
         self._hashkey = self._get_hashkey_query(query)
         return self
         
-    def get(self) -> Union[List[Dict], List]:
+    async def get(self) -> Union[List[Dict], List]:
         """Получение данных из кеша по условию или без условия.
 
         Returns:
@@ -129,49 +114,40 @@ class CacheQuery(BaseCache):
         """
         if not self._hashkey:
             raise NotQuery()
-        if self._hashkey in self._cache:
+        if self._hashkey in self._get_hashkeys_cache():
             if not self._filter_params:
-                return self._cache[self._hashkey]
+                return await self._cache.get(self._hashkey)
             else:
-                data = list(self._filtered_data(self._hashkey, self._filter_params))
+                check = await self._check_fields_in_cache(self._hashkey, list(self._filter_params.keys()))
+                if not check:
+                    raise NoMatchFieldInCache()
+                data = await self._filtered_data(self._hashkey, self._filter_params)
                 self._filter_params.clear()
                 return data
-        self._delete_hashkey_in_tables(self._hashkey)
+        await self._delete_hashkey_in_tables(self._hashkey)
         return []
 
-    def __setitem__(self, query: str, data: List[Dict]):
+    async def set_data(self, data: List[Dict]):
         """Сохранить в кеш данные.
 
         Args:
             query (str): SQL запрос.
             data (List[Dict]): Результирующие данные из БД.
         """
-        if not self.is_enabled_cache():
-            raise DesabledCache()
-        return self._setitem_(query, data)
-
-    def _setitem_(self, query: str, data: List[Dict]):
-        hashkey = self._get_hashkey_query(query)
         tables = self._get_tables_from_fields(data)
-        self._save_hashkey_in_tables(tables, hashkey)
-        self._cache[hashkey] = data
+        await self._save_hashkey_in_tables(tables, self._hashkey)
+        await self._set_cache(self._hashkey, data)
 
-    def __delitem__(self, query: str):
+    async def delete_query(self):
         """Удаление из кеша данных.
 
         Args:
             query (str): SQL запрос.
         """
-        if not self.is_enabled_cache():
-            raise DesabledCache()
-        return self._delitem_(query)
-
-    def _delitem_(self, query: str):
-        hashkey = self._get_hashkey_query(query)
-        self._cache.pop(hashkey, None)
-        self._delete_hashkey_in_tables(hashkey)
-        
-    def filter(self, params: Dict) -> 'BaseCache':
+        await self._cache.delete(self._hashkey)
+        await self._delete_hashkey_in_tables(self._hashkey)
+    
+    def filter(self, params: Dict) -> 'AsyncBaseCache':
         """Условие для выборки записей в кеше.
         Выборка учитывает точное совпадение значений.
         
@@ -189,13 +165,11 @@ class CacheQuery(BaseCache):
         """ 
         if not self._hashkey:
             raise NotQuery()
-        if not self._check_fields_in_cache(self._hashkey, list(params.keys())):
-            raise NoMatchFieldInCache()
         self._filter_params.clear()
         self._filter_params.update(params)
         return self
     
-    def insert(self, record: Dict) -> Optional[Dict]:
+    async def insert(self, record: Dict) -> Optional[Dict]:
         """Добавление записи к кеш.
 
         Args:
@@ -207,15 +181,18 @@ class CacheQuery(BaseCache):
         """ 
         if not self._hashkey:
             raise NotQuery()
-        if not self._check_fields_identity(self._hashkey, list(record.keys())):
+        identity = await self._check_fields_identity(self._hashkey, list(record.keys()))
+        if not identity:
             raise NoMatchFieldInCache()
-        if self._hashkey not in self._cache:
-            self._cache[self._hashkey] = [record]
+        if self._hashkey not in self._get_hashkeys_cache():
+            self._set_cache(self._hashkey, [record])
         else:
-            self._cache[self._hashkey].append(record)
+            data = await self._cache.get(self._hashkey)
+            data.append(record)
+            self._set_cache(self._hashkey, data)
         return record
         
-    def update(self, params: Dict) -> Union[List[Dict], List]:
+    async def update(self, params: Dict) -> Union[List[Dict], List]:
         """Обновление записей в кеше по условию.
         
         Args:
@@ -231,18 +208,20 @@ class CacheQuery(BaseCache):
         """ 
         if not self._hashkey:
             raise NotQuery()
-        if not self._check_fields_in_cache(self._hashkey, list(params.keys())):
+        check = await self._check_fields_in_cache(self._hashkey, list(params.keys()))
+        if not check:
             raise NoMatchFieldInCache()
         updateted_records = []
-        if self._hashkey not in self._cache:
+        if self._hashkey not in self._get_hashkeys_cache():
             return updateted_records
-        for record in self._filtered_data(self._hashkey, self._filter_params):
+        filtered_data = await self._filtered_data(self._hashkey, self._filter_params)
+        for record in filtered_data:
             record.update(params)
             updateted_records.append(record)
         self._filter_params.clear()
         return updateted_records
-        
-    def delete(self) -> Union[List[Dict], List]:
+    
+    async def delete(self) -> Union[List[Dict], List]:
         """Удаление записей из кеша по условию.
         
         Args:
@@ -253,16 +232,25 @@ class CacheQuery(BaseCache):
         """  
         if not self._hashkey:
             raise NotQuery()
+        check = await self._check_fields_in_cache(self._hashkey, list(self._filter_params.keys()))
+        if not check:
+            raise NoMatchFieldInCache()
         deleted = []
-        if self._hashkey not in self._cache:
+        if self._hashkey not in self._get_hashkeys_cache():
             return deleted
-        for i in self._get_index_records(self._hashkey, self._filter_params):
-            deleted.append(self._cache[self._hashkey][i])
-            del self._cache[self._hashkey][i]
+        indexes = await self._get_index_records(self._hashkey, self._filter_params)
+        data = await self._cache.get(self._hashkey)
+        for i in indexes:
+            deleted.append(data[i])
+            del data[i]
+        if data:
+            await self._set_cache(self._hashkey, data)
+        else:
+            await self._cache.delete(self._hashkey)
         self._filter_params.clear()
         return deleted
     
-    def get_data_query(self, query: str) -> Union[List[Tuple], List]:
+    async def get_data_query(self, query: str) -> Union[List[Tuple], List]:
         """Получает данные из произвольного запроса.
 
         Args:
@@ -272,11 +260,12 @@ class CacheQuery(BaseCache):
             Union[List[List], List]: Данные.
         """
         hashkey = self._get_hashkey_query(query)
-        if hashkey in self._cache:
-            return self._cache[self._hashkey]
-        return []
-        
-    def save_data_query(self, query: str, data: List[Tuple]):
+        data = await self._cache.get(hashkey)
+        if not data:
+            return []
+        return data
+    
+    async def save_data_query(self, query: str, data: List[Tuple]):
         """Сохраняет даннные произвольного запроса в кеш.
 
         Args:
@@ -284,18 +273,18 @@ class CacheQuery(BaseCache):
             data (List[Tuple]): Данные.
         """
         hashkey = self._get_hashkey_query(query)
-        self._cache[hashkey] = data
-        
-    def delete_data_query(self, query: str):
+        await self._set_cache(hashkey, data)
+    
+    async def delete_data_query(self, query: str):
         """Удаляет даннные произвольного запроса из кеша.
 
         Args:
             query (str): SQL запрос.
         """        
         hashkey = self._get_hashkey_query(query)
-        self._cache.pop(hashkey, None)
+        await self._cache.delete(hashkey)
 
-    def _get_index_records(self, hashkey: str, params: Dict) -> Iterator[int]:
+    async def _get_index_records(self, hashkey: str, params: Dict) -> List[int]:
         """Получение индексов записей в кеше.
 
         Args:
@@ -305,12 +294,15 @@ class CacheQuery(BaseCache):
         Yields:
             Iterator: Индекс.
         """
-        for i, record in enumerate(self._cache[hashkey]):
+        data = []
+        records = await self._cache.get(hashkey)
+        for i, record in enumerate(records):
             common_values = record.items() & params.items()
             if len(params.keys()) == len(common_values):
-                yield i
+                data.append(i)
+        return data
 
-    def _check_fields_identity(self, hashkey: str, keys: List) -> bool:
+    async def _check_fields_identity(self, hashkey: str, keys: List) -> bool:
         """Проверить чтобы список полей был идентичен.
 
         Args:
@@ -319,15 +311,16 @@ class CacheQuery(BaseCache):
 
         Returns:
             bool: Флаг.
-        """        
-        for record in self._cache[hashkey]:
+        """
+        records = await self._cache.get(hashkey)
+        for record in records:
             common_values = set(record.keys()) & set(keys)
             if len(common_values) == len(record.keys()):
                 return True
             break
         return False
 
-    def _check_fields_in_cache(self, hashkey: str, keys: List) -> bool:
+    async def _check_fields_in_cache(self, hashkey: str, keys: List) -> bool:
         """Проверить поля на существование в записи кеша.
 
         Args:
@@ -336,15 +329,18 @@ class CacheQuery(BaseCache):
 
         Returns:
             bool: Флаг.
-        """        
-        for record in self._cache[hashkey]:
+        """
+        records = await self._cache.get(hashkey)
+        if not records:
+            return True
+        for record in records:
             common_values = set(record.keys()) & set(keys)
             if len(common_values) == len(keys):
                 return True
             break
         return False
 
-    def _filtered_data(self, hashkey: str, params: Dict) -> Iterator[Dict]:
+    async def _filtered_data(self, hashkey: str, params: Dict) -> List[Dict]:
         """Фильтрация данных.
 
         Args:
@@ -353,11 +349,14 @@ class CacheQuery(BaseCache):
 
         Yields:
             Iterator: Отфильтрованный элемент из кеша.
-        """        
-        for record in self._cache[hashkey]:
+        """
+        data = []
+        records = await self._cache.get(hashkey)
+        for record in records:
             common_values = record.items() & params.items()
             if len(params.keys()) == len(common_values):
-                yield record
+                data.append(record)
+        return data
 
     def _get_tables_from_fields(self, data: List[Dict]) -> List:
         """Список таблиц которые участвуют в запросе.
@@ -376,31 +375,70 @@ class CacheQuery(BaseCache):
                 tables.add(table_field[0])
         return list(tables)
 
-    def _save_hashkey_in_tables(
+    async def _save_hashkey_in_tables(
         self, tables: List[str], hashkey: str
     ):
         """Сохраняет для каждой таблицы хеш запроса.
         (В каком запросе участвовала таблица)
+        
         Args:
             hashkey (str): Хеш от запроса.
             tables (List[str]): Список названий таблиц.
         """
         for table in tables:
-            if self._tables.get(table) is None:
-                self._tables[table] = [hashkey]
+            values = await self._tables.get(table)
+            if values is None:
+                await self._tables.set(table, [hashkey])
                 continue
-            self._tables[table].append(hashkey)
+            values.append(hashkey)
+            await self._tables.set(table, values)
 
-    def _delete_hashkey_in_tables(self, hashkey: str):
+    async def _delete_hashkey_in_tables(self, hashkey: str):
         """Удаление hashkey из таблиц.
 
         Args:
             hashkey (str): Хеш.
-        """        
-        for _, hashkeys in self._tables.items():
+        """
+        if not hasattr(self._tables, '_cache'):
+            return
+        items = list(self._tables._cache.items())
+        for table, hashkeys in items:
             if hashkey not in hashkeys:
                 continue
             hashkeys.remove(hashkey)
+            await self._tables.set(table, hashkeys)
+            
+    async def _set_cache(self, key: str, value: Any):
+        """Установить в кеш данные в зависимости от опций.
+
+        Args:
+            key (str): Значение.
+            value (Any): Данные.
+        """        
+        if self._non_expired:
+            return await self._cache.set(key, value)
+        if self._ttl:
+            return await self._cache.set(key, value, self._ttl)
+    
+    def _get_tables_cache(self) -> List[str]:
+        """Таблицы участвующие в запросах.
+
+        Returns:
+            List[str]: Список таблиц.
+        """
+        if not hasattr(self._tables, '_cache'):
+            return []
+        return list(self._tables._cache.keys())
+    
+    def _get_hashkeys_cache(self) -> List[str]:
+        """Ключи по которым хранятся данные.
+
+        Returns:
+            List[str]: Список ключей.
+        """
+        if not hasattr(self._cache, '_cache'):
+            return []
+        return list(self._cache._cache.keys())
 
     def _get_hashkey_query(self, query: str) -> str:
         """Получение кеша от запроса.
