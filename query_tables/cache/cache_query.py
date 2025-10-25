@@ -3,7 +3,7 @@ from cachetools import TTLCache, LRUCache
 from typing import Union, List, Dict, Iterator, Optional, Tuple
 from threading import RLock
 from query_tables.exceptions import NotQuery, NoMatchFieldInCache, DesabledCache
-from query_tables.cache import BaseCache, TypeCache
+from query_tables.cache.base_cache import BaseCache, TypeCache
 
 
 class SyncLockDecorator:

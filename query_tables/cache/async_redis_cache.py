@@ -6,7 +6,8 @@ import datetime
 import base64
 import uuid
 from typing import Union, List, Dict, Optional, Iterator, Tuple
-from query_tables.cache import AsyncBaseCache, RedisConnect, TypeCache
+from query_tables.cache.base_cache import AsyncBaseCache, TypeCache
+from query_tables.cache.redis_cache import RedisConnect
 from query_tables.exceptions import NoMatchFieldInCache
 from query_tables.translate import _
 from query_tables.utils import logger

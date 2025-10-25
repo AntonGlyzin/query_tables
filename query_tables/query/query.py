@@ -1,16 +1,46 @@
-from typing import Union, Any, List, Optional, Dict
-from query_tables.query import BaseJoin, BaseQuery
+from datetime import datetime
+from typing import Union, Any, List, Optional, Dict, Tuple
+from query_tables.query.base_query import BaseQuery, BaseJoin
+from query_tables.query.join_table import CommonJoin
+from query_tables.query.condition import AND, Condition
 from query_tables.exceptions import (
     NotFieldQueryTable, 
     ErrorConvertDataQuery,
     ErrorExecuteJoinQuery,
-    ErrorAliasTableJoinQuery
+    DublicatTableNameQuery,
+    NotExistOperatorFilter
 )
+
 
 class Query(BaseQuery):
     """
         Отвечает за сборку sql запросов.
-    """    
+    """
+    PLACEHOLDER = '%({})s'
+    PLACEHOLDER_PATTERN = r'%\((\w+)\)s'
+    
+    OPERATORS = {
+        'ilike': 'ilike',
+        'notilike': 'not ilike',
+        'like': 'like',
+        'notlike': 'not like',
+        'in': 'in',
+        'notin': 'not in',
+        'gt': '>',
+        'gte': '>=',
+        'lt': '<',
+        'lte': '<=',
+        'notequ': '!=',
+        'between': 'between',
+        'notbetween': 'not between',
+        'isnull': 'is null',
+        'isnotnull': 'is not null',
+        'iregex': '~*',
+        'notiregex': '!~*',
+        'regex': '~',
+        'notregex': '!~',
+    }
+    
     def __init__(self, table_name: str, fields: List):
         """
         Args:
@@ -22,35 +52,29 @@ class Query(BaseQuery):
         self._user_fields = [] # Пользовательские поля в формате <поле> текущей таблицы.
         # Формат поля <таблица>.<поле> 
         self._map_select = [
-            f'{self._table_name}.{field}' for field in self._fields
+            f'{self._table_name}.{field}' 
+            for field in self._fields
         ]
-        self._from = f' from {self._table_name}'
-        self._sql_delete = f'delete from {self._table_name} '
-        self._sql_insert = f'insert into {self._table_name} '
-        self._sql_update = f'update {self._table_name} set '
         self._join = ''
-        self._joined_tables: List[BaseQuery] = []
+        self._joined_tables: List['Query'] = []
         self._where = ''
+        self._group_by = ''
+        self._having = ''
         self._order_by = ''
         self._limit = ''
-        self._operators = {
-            'ilike': 'ilike',
-            'like': 'like',
-            'in': 'in',
-            'gt': '>',
-            'gte': '>=',
-            'lt': '<',
-            'lte': '<=',
-            'between': 'between',
-            'isnull': 'is null',
-            'isnotnull': 'is not null',
-            'notequ': '!='
-        }
-        # если текущая таблица соединяется с другой
-        self.join_field = ''
-        self.ext_field = ''
-        self.table_alias = ''
-        self.join_method = ''
+        self._offset = ''
+        self._params: Dict[str, Any] = {}
+        # если текущая таблица соединяется с внешней
+        self._join_field = ''
+        self._ext_field = ''
+        self._ext_table = ''
+        self._table_alias = ''
+        self._join_method = ''
+    
+    @property
+    def params(self):
+        """Параметры для вставки в sql."""        
+        return self._params
 
     @property
     def map_fields(self) -> List:
@@ -79,7 +103,7 @@ class Query(BaseQuery):
         """
             Участвует ли таблица в JOIN связке.
         """        
-        if self._join or self.join_method:
+        if self._joined_tables:
             return True
         return False
     
@@ -90,9 +114,10 @@ class Query(BaseQuery):
             fields (List[str]): Поля из БД.
 
         Returns:
-            BaseQuery: Экземпляр запроса.
+            Query: Экземпляр запроса.
         """
         if not fields:
+            self._map_select.clear()
             return self
         self._exist_fields(fields)
         self._map_select = list(filter(
@@ -104,71 +129,89 @@ class Query(BaseQuery):
             self._map_select.append(f'{self._table_name}.{field}')
         return self
 
-    def join(self, table: BaseJoin) -> 'Query':
+    def join(self, table: Union[BaseJoin, 'Query']) -> 'Query':
         """Присоединение таблиц через join оператор sql. 
 
         Args:
             table (BaseJoin): Таблица которая присоединяется.
 
         Returns:
-            BaseQuery: Экземпляр запроса.
-        """ 
-        self._exist_field(table.ext_field)
-        table._exist_field(table.join_field)
-        table_alias = table.table_alias or table._table_name
-        for table_field in table._map_select:
-            table_name, field = table_field.split('.')
-            if table_name == table._table_name:
-                self._map_select.append(f"{table_alias}.{field}")
-            else:
-                self._map_select.append(table_field)
-        table._map_select.clear()        
-        fields = table._user_fields or table._fields
-        for field in fields:
-            table._map_select.append(f"{table._table_name}.{field}")
+            Query: Экземпляр запроса.
+        """
+        if issubclass(type(table), CommonJoin):
+            table = table.join_table
+        self._exist_field(table._ext_field)
+        table._exist_field(table._join_field)
+        table._ext_table = self._table_name
+        self._params.update(table._params)
+        table._params.clear()
         self._joined_tables.append(table)
         self._joined_tables.extend(table._joined_tables)
-        table._joined_tables.clear()    
-        self._join += (
-            f" {table.join_method} ({table._get()}) as {table_alias} "
-            f"on {table_alias}.{table.join_field} = {self._table_name}.{table.ext_field}"
-        ) + table._join
-        table._join = ''
+        table._joined_tables.clear()
         return self
 
-    def filter(self, **params) -> 'Query':
+    def filter(self, *args, **params) -> 'Query':
         """Добавление фильтров в where блок запроса sql.
         
         Args:
             params: Параметры выборки.
 
         Returns:
-            BaseQuery: Экземпляр запроса.
+            Query: Экземпляр запроса.
         """
-        where = []
-        for field_op, value in params.items():
-            field, operator = self._get_operator_by_field(field_op)
+        if args and issubclass(type(args[0]), Condition):
+            param, val = args[0]._set_query(self)._parse()
+        else:
+            param, val = AND(**params)._set_query(self)._parse()
+        self._params.update(param)
+        self._where = f' where {val}'
+        return self
+    
+    def group_by(self, params: list[str]) -> 'Query':
+        """Группировка записей по полю.
+
+        Args:
+            params (list[str]): Список строк.
+
+        Returns:
+            Query: Экземпляр запроса.
+        """        
+        groupby = []
+        for field in params:
             self._exist_field(field)
-            val = self._convert_simple_format_data(value)
-            where.append(
-                f'{self._table_name}.{field} {operator} {val}'
-            )
-        if where:
-            self._where = ' where '
-            self._where += ' and '.join(where)
+            groupby.append(field)
+        if groupby:
+            self._group_by = ' group by '
+            self._group_by += ', '.join(groupby)
+        return self
+    
+    def having(self, *args, **params) -> 'Query':
+        """Добавление фильтров в having блок запроса sql.
+        
+        Args:
+            params: Параметры выборки.
+
+        Returns:
+            Query: Экземпляр запроса.
+        """
+        if args and issubclass(type(args[0]), Condition):
+            param, val = args[0]._set_query(self)._parse()
+        else:
+            param, val = AND(**params)._set_query(self)._parse()
+        self._params.update(param)
+        self._having = f' having {val}'
         return self
 
     def order_by(self, **kwargs) -> 'Query':
         """Сортировка для sql запроса.
 
         Returns:
-            BaseQuery: Экземпляр запроса.
+            Query: Экземпляр запроса.
         """
-        order_by = []
-        for field, order in kwargs.items():
-            order_by.append(
-                f'{self._table_name}.{field} {order}'
-            )
+        order_by = [
+            f'{self._table_name}.{field} {order}'
+            for field, order in kwargs.items()
+        ]
         if order_by:
             self._order_by = ' order by '
             self._order_by += ', '.join(order_by)
@@ -178,22 +221,31 @@ class Query(BaseQuery):
         """Ограничение записей в sql запросе.
 
         Args:
-            value (int): Экземпляр запроса.
+            value (int): Количество записей.
         
         Returns:
-            BaseQuery: Экземпляр запроса.
+            Query: Экземпляр запроса.
         """
-        self._limit = f' limit {value}'
+        self._limit = f' limit {value} '
         return self
     
-    def get(self) -> str:
+    def offset(self, value: int) -> 'Query':
+        """Смещение.
+
+        Args:
+            value (int): Смещение по записям.
+        
+        Returns:
+            Query: Экземпляр запроса.
+        """
+        self._offset = f' offset {value} '
+        return self
+    
+    def get(self):
         """Запрос на получение записей.
         
         Raises:
-            ErrorAliasTableJoinQuery: Ошибка псевдонима JOIN таблиц.
-
-        Returns:
-            str: SQL запрос.
+            DublicatTableNameQuery: Ошибка псевдонима JOIN таблиц.
         """
         return self._get()
     
@@ -201,45 +253,45 @@ class Query(BaseQuery):
         """Запрос на получение записей.
         
         Raises:
-            ErrorAliasTableJoinQuery: Ошибка псевдонима JOIN таблиц.
+            DublicatTableNameQuery: Ошибка псевдонима JOIN таблиц.
 
         Returns:
             str: SQL запрос.
         """
-        for table1 in self._joined_tables:
-            if not table1.table_alias:
-                continue
-            table_alias = True
-            # если у таблицы есть псевдоним, 
-            # то должна быть еще одна таблицы без псевдонима
-            for table2 in self._joined_tables:
-                if table1._table_name == table2._table_name:
-                    if not table2.table_alias:
-                        table_alias = False
-                        break
-            if table_alias:
-                raise ErrorAliasTableJoinQuery(table1._table_name)
+        self._check_dublicate_join()
+        self._join = self._build_join()
+        for i, table1 in enumerate(self._joined_tables):
+            for j, table2 in enumerate(self._joined_tables):
+                if i==j:
+                    continue
+                if self._table_name != table2._table_name:
+                    continue
+                if not table1.table_alias and not table2.table_alias:
+                    # название таблиц не должны совпадать
+                    raise DublicatTableNameQuery(table1._table_name)
         select = 'select ' + ', '.join(self._map_select)
+        if not self._map_select:
+            select = 'select * '
         return (
             f"{select}"
-            f"{self._from}"
+            f" from {self._table_name} "
             f"{self._join}"
             f"{self._where}"
+            f"{self._group_by}"
+            f"{self._having}"
             f"{self._order_by}"
             f"{self._limit}"
+            f'{self._offset}'
         ).strip()
         
-    def update(self, **params) -> str:
+    def update(self, **params):
         """Запрос на обновление записей по фильтру.
         
         Args:
-            params: Параметры которые будут обновляться.
+            params: Параметры для обновления.
             
         Raise:
             ErrorExecuteJoinQuery: Запретить выполнять с join таблицами.
-
-        Returns:
-            str: SQL запрос.
         """
         return self._update(**params)
 
@@ -261,27 +313,25 @@ class Query(BaseQuery):
         set_fields = ''
         for field, value in params.items():
             self._exist_field(field)
-            val = self._convert_simple_format_data(value)
+            param, val = self._get_placeholder_value(field, '=', value)
+            self._params.update(param)
             fields.append(f'{field} = {val}')
         if fields:
             set_fields = ', '.join(fields)
         return (
-            f"{self._sql_update}"
+            f" update {self._table_name} set "
             f"{set_fields}"
             f"{self._where}"
         ).strip()
     
-    def insert(self, records: List[Dict]) -> str:
+    def insert(self, records: List[Dict]):
         """Вставка записи.
         
         Args:
-            params: Строка для вставки.
+            params: Параметры для вставки.
             
         Raise:
             ErrorExecuteJoinQuery: Запретить выполнять с join таблицами.
-
-        Returns:
-            str: SQL запрос.
         """
         return self._insert(records)
 
@@ -302,20 +352,21 @@ class Query(BaseQuery):
         fields = list(records[0].keys())
         self._exist_fields(fields)
         into_values = []
-        for record in records:
+        for i, record in enumerate(records):
             values = []
             for field in fields:
                 if record[field] is None:
                     continue
-                val = self._convert_simple_format_data(record[field])
+                param, val = self._get_placeholder_value(f'{field}{i}', '', record[field])
+                self._params.update(param)
                 values.append(val)
             into_values.append('({})'.format(', '.join(values)))
-        text_fields = '({})'.format(', '.join(fields))
-        text_values = ' values {}'.format(', '.join(into_values))
+        sql_fields = '({})'.format(', '.join(fields))
+        sql_values = ' values {}'.format(', '.join(into_values))
         return (
-            f"{self._sql_insert}"
-            f'{text_fields}'
-            f'{text_values}'
+            f" insert into {self._table_name} "
+            f'{sql_fields}'
+            f'{sql_values}'
         ).strip()
 
     def delete(self) -> str:
@@ -341,10 +392,66 @@ class Query(BaseQuery):
         if self.is_table_joined:
             raise ErrorExecuteJoinQuery('delete')
         return (
-            f"{self._sql_delete}"
+            f" delete from {self._table_name} "
             f"{self._where}"
         ).strip()
-        
+    
+    def _build_join(self) -> str:
+        """Собирает join sql. 
+
+        Returns:
+            str: join sql.
+        """
+        join = ''
+        for table in self._joined_tables:
+            table_alias = table._table_alias or table._table_name
+            for table_field in table._map_select:
+                table_name, field = table_field.split('.')
+                if table_name == table._table_name:
+                    map_field = f"{table_alias}.{field}"
+                else:
+                    map_field = table_field
+                if map_field not in self._map_select:
+                    self._map_select.append(map_field)
+            join += (
+                f" {table._join_method} ({table._get()}) as {table_alias} "
+                f"on {table_alias}.{table._join_field} = {table._ext_table}.{table._ext_field}"
+            )
+        return join
+    
+    def _get_filter(self, relation: str = 'and', **params) -> Tuple[Dict, str]:
+        """Часть запроса для условия.
+
+        Args:
+            relation (str, optional): Связь параметров.
+
+        Returns:
+            Tuple[Dict, str]: Параметры и часть строки условия.
+        """        
+        where = []
+        new_params = {}
+        for field_op, value in params.items():
+            field, operator = self._get_operator_by_field(field_op)
+            self._exist_field(field)
+            table_alias = self._table_alias or self._table_name
+            table_field = f'{table_alias}_{field}'
+            param, val = self._get_placeholder_value(table_field, operator, value)
+            new_params.update(param)
+            where.append(f'{self._table_name}.{field} {operator} {val}')
+        return new_params, '({})'.format(f' {relation} '.join(where))
+    
+    def _check_dublicate_join(self):
+        """Проверка на дубликат названия без псевдонима.
+
+        Raises:
+            DublicatTableNameQuery: Дубль названий таблиц без псевдонима.
+        """        
+        for table1 in self._joined_tables:
+            if self._table_name == table1._table_name:
+                if not self.table_alias and not table1.table_alias:
+                    # название таблиц не должны совпадать
+                    raise DublicatTableNameQuery(table1._table_name)
+    
     def _exist_fields_identity(
         self, fields: List, 
         exclude_fields: Optional[List] = None, 
@@ -413,26 +520,73 @@ class Query(BaseQuery):
             else:
                 return False
         return True
-        
-    def _get_operator_by_field(self, field: str) -> tuple[str, str]:
+    
+    @classmethod
+    def _get_operator_by_field(cls, field_op: str) -> Tuple[str, str]:
         """Получение оператора из названия поля.
 
         Args:
             field (str): Поле.
+            
+        Raises:
+            NotExistOperatorFilter: Нет такого оператора.
 
         Returns:
-            tuple[str, str]: Название поля и оператор
+            Tuple[str, str]: Название поля и оператор
         """        
-        field_operator = field.split('__')
+        field_operator = field_op.split('__')
         if len(field_operator) >= 2:
-            _field = field_operator[0]
+            field = field_operator[0]
             operator = field_operator[-1]
-            if self._operators.get(operator):
-                return _field, self._operators.get(operator)
-        return field, '='
+            if cls.OPERATORS.get(operator):
+                return field, cls.OPERATORS.get(operator)
+            else:
+                raise NotExistOperatorFilter(operator)
+        return field_op, '='
+    
+    @classmethod
+    def _get_placeholder_value(
+            cls, table_field: str, operator: str, value: Any
+        ) -> Tuple[Dict, str]:
+        """Устанавливает плейсхолдеры и параметры для запроса.
 
+        Args:
+            table_field (str): Название поля.
+            operator (str): Оператор.
+            value (Any): Значения.
+
+        Returns:
+            Tuple[Dict, str]: Параметры и плейсхолдер на запрос.
+        """
+        params = {}
+        if isinstance(value, (int, float, str, bool, datetime)):
+            val = cls.PLACEHOLDER.format(table_field)
+            params.update({ table_field: value })
+            return params, val
+        elif isinstance(value, (list, tuple)):
+            if operator.find('between') != -1 and len(value) == 2:
+                params.update(
+                        {
+                            f'{table_field}0': value[0],
+                            f'{table_field}1': value[1]
+                        }
+                    )
+                val0 = cls.PLACEHOLDER.format(f'{table_field}0')
+                val1 = cls.PLACEHOLDER.format(f'{table_field}1')
+                return params, f'{val0} and {val1}'
+            else:
+                in_elements = []
+                for i, item in enumerate(value):
+                    params.update({ f'{table_field}{i}': item })
+                    val = cls.PLACEHOLDER.format(f'{table_field}{i}')
+                    in_elements.append(val)
+                val = "({})".format(','.join(in_elements))
+                return params, val
+        return params, ''
+
+    @classmethod
     def _convert_simple_format_data(
-        self, value: Optional[Union[list, tuple, int, float, str, bool]] = None
+        cls, value: Optional[Union[list, tuple, int, float, str, bool]] = None
     ) -> Any:
         """Конвертация данных в нативные типы для sql.
 
@@ -450,13 +604,13 @@ class Query(BaseQuery):
         if isinstance(value, tuple):
             if len(value) == 2:
                 return "{} and {}".format(*[
-                    self._convert_simple_format_data(item) for item in value
+                    cls._convert_simple_format_data(item) for item in value
                 ])
             if len(value) > 2:
                 value = list(value)
         if isinstance(value, list):
             value = [
-                self._convert_simple_format_data(item) for item in value
+                cls._convert_simple_format_data(item) for item in value
             ]
             return "({})".format(','.join(map(str, value)))
         elif isinstance(value, bool):

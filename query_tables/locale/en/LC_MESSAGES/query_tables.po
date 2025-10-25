@@ -122,3 +122,17 @@ msgstr "Error when executing the request. {}"
 msgid ""
 "Для кеша с типом '{}' невозможно сохранять или загружать структуру таблиц."
 msgstr "It is not possible to save or load the table structure for a cache with type '{}'."
+
+#: C:\Users\Antonio\Desktop\query_tables\query_tables\exceptions.py:135
+#, python-brace-format
+msgid "Для такого оператора '{}' нет реализации."
+msgstr "There is no implementation for such an operator '{}'."
+
+#: C:\Users\Antonio\Desktop\query_tables\query_tables\exceptions.py:144
+#, python-brace-format
+msgid ""
+"Ошибка псевдонима у JOIN таблицы. Название таблицы '{}' повторяется без "
+"псевдонима."
+msgstr ""
+"The JOIN table has an alias error. The table name '{}' is repeated without "
+"an alias."

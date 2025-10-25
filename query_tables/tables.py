@@ -3,9 +3,10 @@ from typing import List, Optional, Union, Type, Tuple
 from query_tables.exceptions import (
     NotTable, ExceptionQueryTable
 )
-from query_tables.cache import CacheQuery, BaseCache, TypeCache, AsyncBaseCache, AsyncCacheQuery
+from query_tables.cache import CacheQuery, BaseCache, AsyncBaseCache, AsyncCacheQuery
 from query_tables.db import BaseDBQuery, BaseAsyncDBQuery
 from query_tables.query_table import QueryTable, AsyncQueryTable
+from query_tables.query import Query
 
 
 class BaseTables(object):
@@ -35,6 +36,10 @@ class BaseTables(object):
         self._tables: Optional[List[str]] = tables
         self._table_schema: str = table_schema
         self._tables_struct: dict[str, list] = {}
+        self._db.set_placeholder_pattern(
+                Query.PLACEHOLDER_PATTERN, 
+                Query.PLACEHOLDER
+            )
     
     def __getitem__(self, table_name: str) -> QueryTable:
         """Получение экземпляра для запроса.
@@ -89,20 +94,15 @@ class Tables(BaseTables):
         """
         super().__init__(db, QueryTable, prefix_table, tables, table_schema)
         self._cache = cache or CacheQuery(cache_ttl, cache_maxsize, non_expired)
-        if TypeCache.remote == self._cache.type_cache:
-            self._tables_struct = self._cache._get_struct_tables()
-            if self._tables_struct:
-                return None
         self._tables_struct = self._db.get_tables_struct(
                 table_schema=table_schema,
                 prefix_table=prefix_table,
                 tables=tables
             )
-        if TypeCache.remote == self._cache.type_cache:
-            self._cache._save_struct_tables(self._tables_struct)
     
     def query(
         self, sql: str,
+        params: dict = None,
         cache: bool = False,
         delete_cache: bool = False
     ) -> Optional[List[Tuple]]:
@@ -111,6 +111,7 @@ class Tables(BaseTables):
 
         Args:
             sql (str): SQL запрос.
+            params (dict): Парамтеры запроса.
             cache (bool): Подгружать и сохранять данные в кеше.
             delete_cache (bool): Удалить данные из кеша, если они там есть.
 
@@ -124,7 +125,7 @@ class Tables(BaseTables):
             if data:
                 return data
         with self._db as db_query:
-            db_query.execute(sql)
+            db_query.execute(sql, params)
             data = db_query.fetchall()
         if cache:
             self._cache.save_data_query(sql, data)
@@ -167,20 +168,15 @@ class TablesAsync(BaseTables):
         self._cache = cache or AsyncCacheQuery(cache_ttl, non_expired)
     
     async def init(self):
-        if TypeCache.remote == self._cache.type_cache:
-            self._tables_struct = await self._cache._get_struct_tables()
-            if self._tables_struct:
-                return None
         self._tables_struct = await self._db.get_tables_struct(
                 table_schema=self._table_schema,
                 prefix_table=self._prefix_table,
                 tables=self._tables
             )
-        if TypeCache.remote == self._cache.type_cache:
-            await self._cache._save_struct_tables(self._tables_struct)
     
     async def query(
         self, sql: str,
+        params: dict = None,
         cache: bool = False,
         delete_cache: bool = False
     ) -> Optional[List[Tuple]]:
@@ -189,6 +185,7 @@ class TablesAsync(BaseTables):
 
         Args:
             sql (str): SQL запрос.
+            params (dict): Парамтеры запроса.
             cache (bool): Получать и устанавливать данные в кеш.
             delete_cache (bool): Удалить данные из кеша, если они там есть.
 
@@ -202,7 +199,7 @@ class TablesAsync(BaseTables):
             if data:
                 return data
         async with self._db as db_query:
-            await db_query.execute(sql)
+            await db_query.execute(sql, params)
             data = await db_query.fetchall()
         if cache:
             await self._cache.save_data_query(sql, data)

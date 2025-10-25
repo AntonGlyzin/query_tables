@@ -1,6 +1,7 @@
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Tuple
 from abc import ABC
 from dataclasses import dataclass
+import re
 from query_tables.exceptions import (
     ErrorLoadingStructTables
 )
@@ -19,7 +20,16 @@ class BaseDBQuery(ABC):
             Возвращает тип БД.
         """        
         ...
-        
+    
+    def set_placeholder_pattern(self, pattern: str, placeholder: str):
+        """Установить паттерн и плейсхолдер.
+
+        Args:
+            pattern (str): Паттерн из query.
+            placeholder (str): Плейсхолдер.
+        """
+        ...
+    
     def get_tables_struct(
             self, table_schema: str = None, 
             prefix_table: str = None, tables: List = None
@@ -77,7 +87,7 @@ class BaseAsyncDBQuery(ABC):
             Возвращает тип БД.
         """        
         ...
-        
+    
     async def get_tables_struct(
             self, table_schema: str = None, 
             prefix_table: str = None, tables: List = None
@@ -128,6 +138,33 @@ class BaseAsyncDBQuery(ABC):
         ...
 
 
+class PlaceholdersDB(ABC):
+    
+    def set_placeholder_pattern(self, pattern: str, placeholder: str):
+        """Установить паттерн и плейсхолдер.
+
+        Args:
+            pattern (str): Паттерн из query.
+            placeholder (str): Плейсхолдер.
+        """  
+        self.pattern = pattern
+        self.placeholder = placeholder
+    
+    def change_placeholder(
+            self, sql: str, params: dict = None
+        ) -> Tuple[str, List]:
+        """Замена плейсхолдеров для текущей БД.
+
+        Args:
+            sql (str): sql.
+            params (dict): Параметры.
+
+        Returns:
+            Tuple[str, List]: sql и параметры (может быть изменен порядок).
+        """        
+        ...
+
+
 class BaseDBPGStruct(object):
     
     def pg_query_struct(
@@ -150,7 +187,29 @@ class BaseDBPGStruct(object):
         return query
 
 
-class BaseSQLiteDBQuery(BaseDBQuery):
+class PlaceholdersSQLite(PlaceholdersDB):
+    
+    def change_placeholder(
+            self, sql: str, params: dict = None
+        ) -> Tuple[str, List]:
+        """Замена плейсхолдеров для текущей БД.
+
+        Args:
+            sql (str): sql.
+            params (dict): Параметры.
+
+        Returns:
+            Tuple[str, List]: sql и параметры (может быть изменен порядок).
+        """
+        if not params:
+            return sql, []
+        names = re.findall(self.pattern, sql)
+        values = [params[name] for name in names]
+        converted_sql = re.sub(self.pattern, '?', sql)
+        return converted_sql, values
+
+
+class BaseSQLiteDBQuery(PlaceholdersSQLite, BaseDBQuery):
     
     def get_type(self):
         return DBTypes.sqlite
@@ -194,7 +253,7 @@ class BaseSQLiteDBQuery(BaseDBQuery):
         return tables_struct
 
 
-class BasePostgreDBQuery(BaseDBQuery, BaseDBPGStruct):
+class BasePostgreDBQuery(BaseDBPGStruct, PlaceholdersDB, BaseDBQuery):
     
     def get_type(self):
         return DBTypes.postgres
@@ -224,9 +283,23 @@ class BasePostgreDBQuery(BaseDBQuery, BaseDBPGStruct):
             else:
                 tables_struct[row[0]] = [row[1]]
         return tables_struct
+    
+    def change_placeholder(
+            self, sql: str, params: dict = None
+        ) -> Tuple[str, List]:
+        """Замена плейсхолдеров для текущей БД.
+
+        Args:
+            sql (str): sql.
+            params (dict): Параметры.
+
+        Returns:
+            Tuple[str, List]: sql и параметры (может быть изменен порядок).
+        """
+        return sql, params
 
 
-class BaseAsyncSQLiteDBQuery(BaseAsyncDBQuery):
+class BaseAsyncSQLiteDBQuery(PlaceholdersSQLite, BaseAsyncDBQuery):
     
     def get_type(self):
         return DBTypes.sqlite
@@ -272,7 +345,7 @@ class BaseAsyncSQLiteDBQuery(BaseAsyncDBQuery):
         return tables_struct
 
 
-class BaseAsyncPostgreDBQuery(BaseAsyncDBQuery, BaseDBPGStruct):
+class BaseAsyncPostgreDBQuery(BaseDBPGStruct, PlaceholdersDB, BaseAsyncDBQuery):
     
     def get_type(self):
         return DBTypes.postgres
@@ -302,3 +375,25 @@ class BaseAsyncPostgreDBQuery(BaseAsyncDBQuery, BaseDBPGStruct):
             else:
                 tables_struct[row[0]] = [row[1]]
         return tables_struct
+    
+    def change_placeholder(
+            self, sql: str, params: dict = None
+        ) -> Tuple[str, List]:
+        """Замена плейсхолдеров для текущей БД.
+
+        Args:
+            sql (str): sql.
+            params (dict): Параметры.
+
+        Returns:
+            Tuple[str, List]: sql и параметры (может быть изменен порядок).
+        """
+        if not params:
+            return sql, []
+        names = re.findall(self.pattern, sql)
+        values = [params[name] for name in names]
+        converted_sql = sql
+        for i, name in enumerate(names, 1):
+            new_name = self.placeholder.format(name)
+            converted_sql = converted_sql.replace(new_name, f'${i}')
+        return converted_sql, values

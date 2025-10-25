@@ -7,7 +7,7 @@ import uuid
 from threading import RLock
 from typing import Union, List, Dict, Optional, Iterator, Tuple
 from dataclasses import dataclass
-from query_tables.cache import BaseCache, TypeCache
+from query_tables.cache.base_cache import BaseCache, TypeCache
 from query_tables.exceptions import NoMatchFieldInCache
 from redis.exceptions import ConnectionError, TimeoutError
 from query_tables.translate import _

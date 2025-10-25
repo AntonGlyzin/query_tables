@@ -1,6 +1,8 @@
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Optional
 from query_tables.cache import BaseCache, AsyncBaseCache
 from query_tables.db import BaseDBQuery, BaseAsyncDBQuery
+from query_tables.query.join_table import BaseJoin, CommonJoin
+from query_tables.query.base_query import BaseQueryTable
 from query_tables.query import Query
 from query_tables.exceptions import (
     ErrorDeleteCacheJoin,
@@ -8,7 +10,7 @@ from query_tables.exceptions import (
 )
 
 
-class QueryTable(Query):
+class QueryTable(BaseQueryTable):
     """
         Объединяет работу с запросами и кешем.
     """    
@@ -25,9 +27,9 @@ class QueryTable(Query):
             fields List[str]: Список полей.
             cache (Union[BaseCache, AsyncBaseCache]): Кеш.
         """
-        super().__init__(table_name, fields)
         self._db: Union[BaseDBQuery, BaseAsyncDBQuery] = db
         self._cache: Union[BaseCache, AsyncBaseCache] = cache
+        self._query = Query(table_name, fields)
 
     @property
     def cache(self) -> BaseCache:
@@ -41,7 +43,7 @@ class QueryTable(Query):
         """        
         if not self._cache.is_enabled_cache():
             raise DesabledCache()
-        query = self._get()
+        query = self._query.get()
         return self._cache[query]
 
     def delete_cache_query(self):
@@ -50,7 +52,7 @@ class QueryTable(Query):
         """
         if not self._cache.is_enabled_cache():
             raise DesabledCache()
-        query = self._get()
+        query = self._query.get()
         del self._cache[query]
 
     def delete_cache_table(self):
@@ -59,24 +61,26 @@ class QueryTable(Query):
         """
         if not self._cache.is_enabled_cache():
             raise DesabledCache()
-        if self.is_table_joined:
-            raise ErrorDeleteCacheJoin(self._table_name)
-        self._cache.delete_cache_table(self._table_name)
+        if self._query.is_table_joined:
+            raise ErrorDeleteCacheJoin(self._query._table_name)
+        self._cache.delete_cache_table(self._query._table_name)
 
     def get(self) -> List[Dict]:
+        """Запрос на получение записей.
+            
+        Returns:
+            List[Dict]: Записи.
         """
-            Запрос на получение записей.
-        """
-        query = self._get()
+        query = self._query.get()
         if self._cache.is_enabled_cache():
             cache_data = self._cache[query].get()
             if cache_data:
                 return cache_data
         with self._db as db_query:
-            db_query.execute(query)
+            db_query.execute(query, self._query.params)
             data = db_query.fetchall()
         res = [
-            dict(zip(self.map_fields, row)) for row in data
+            dict(zip(self._query.map_fields, row)) for row in data
         ]
         if self._cache.is_enabled_cache() and res:
             self._cache[query] = res
@@ -84,14 +88,14 @@ class QueryTable(Query):
 
     def insert(self, records: List[Dict]): 
         """Добавляет записи в БД и удаляет 
-            кеш (если включен) по данной таблице.
+        кеш (если включен) по данной таблице.
 
         Args:
             records (List[Dict]): Записи для вставки в БД.
         """        
-        query = self._insert(records)
+        query = self._query.insert(records)
         with self._db as db_query:
-            db_query.execute(query)
+            db_query.execute(query, self._query.params)
         if self._cache.is_enabled_cache():
             self.delete_cache_table()
 
@@ -102,21 +106,118 @@ class QueryTable(Query):
         Args:
             params: Параметры обновления.
         """
-        query = self._update(**params)
+        query = self._query.update(**params)
         with self._db as db_query:
-            db_query.execute(query)
+            db_query.execute(query, self._query.params)
         if self._cache.is_enabled_cache():
             self.delete_cache_table()
 
     def delete(self):
         """Удаляет записи из БД и удаляет 
-            кеш (если включен) по данной таблице.
+        кеш (если включен) по данной таблице.
         """
-        query = self._delete()
+        query = self._query.delete()
         with self._db as db_query:
-            db_query.execute(query)
+            db_query.execute(query, self._query.params)
         if self._cache.is_enabled_cache():
             self.delete_cache_table()
+    
+    def select(self, fields: Optional[List[str]] = None) -> 'QueryTable':
+        """Устанавливает поля для выборки.
+
+        Args:
+            fields (List[str]): Поля из БД.
+
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """
+        self._query.select(fields)
+        return self
+
+    def join(self, table: Union[BaseJoin, 'QueryTable']) -> 'QueryTable':
+        """Присоединение таблиц через join оператор sql. 
+
+        Args:
+            table (BaseJoin): Таблица которая присоединяется.
+
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """
+        if issubclass(type(table), CommonJoin):
+            query = table.join_table._query
+        else:
+            query = table._query
+        self._query.join(query)
+        return self
+
+    def filter(self, *args, **params) -> 'QueryTable':
+        """Добавление фильтров в where блок запроса sql.
+        
+        Args:
+            params: Параметры выборки.
+
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """
+        self._query.filter(*args, **params)
+        return self
+    
+    def group_by(self, params: list[str]) -> 'QueryTable':
+        """Группировка записей по полю.
+
+        Args:
+            params (list[str]): Список строк.
+
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """        
+        self._query.group_by(params)
+        return self
+    
+    def having(self, *args, **params) -> 'QueryTable':
+        """Добавление фильтров в having блок запроса sql.
+        
+        Args:
+            params: Параметры выборки.
+
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """
+        self._query.having(*args, **params)
+        return self
+
+    def order_by(self, **kwargs) -> 'QueryTable':
+        """Сортировка для sql запроса.
+
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """
+        self._query.order_by(**kwargs)
+        return self
+
+    def limit(self, value: int) -> 'QueryTable':
+        """Ограничение записей в sql запросе.
+
+        Args:
+            value (int): Количество записей.
+        
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """
+        self._query.limit(value)
+        return self
+    
+    def offset(self, value: int) -> 'QueryTable':
+        """Смещение.
+
+        Args:
+            value (int): Смещение по записям.
+        
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """
+        self._query.offset(value)
+        return self
 
 
 class AsyncQueryTable(QueryTable):
@@ -145,7 +246,7 @@ class AsyncQueryTable(QueryTable):
         Returns:
             AsyncBaseCache: Кеш.
         """
-        query = self._get()
+        query = self._query.get()
         return self._cache[query]
 
     async def delete_cache_query(self):
@@ -164,25 +265,25 @@ class AsyncQueryTable(QueryTable):
         enabled = await self._cache.is_enabled_cache()
         if not enabled:
             raise DesabledCache()
-        if self.is_table_joined:
-            raise ErrorDeleteCacheJoin(self._table_name)
-        await self._cache.delete_cache_table(self._table_name)
+        if self._query.is_table_joined:
+            raise ErrorDeleteCacheJoin(self._query._table_name)
+        await self._cache.delete_cache_table(self._query._table_name)
     
     async def get(self) -> List[Dict]:
         """
             Запрос на получение записей.
         """
-        query = self._get()
+        query = self._query.get()
         enabled = await self._cache.is_enabled_cache()
         if enabled:
             cache_data = await self._cache[query].get()
             if cache_data:
                 return cache_data
         async with self._db as db_query:
-            await db_query.execute(query)
+            await db_query.execute(query, self._query.params)
             data = await db_query.fetchall()
         res = [
-            dict(zip(self.map_fields, row)) for row in data
+            dict(zip(self._query.map_fields, row)) for row in data
         ]
         if enabled and res:
             await self._cache[query].set_data(res)
@@ -195,9 +296,9 @@ class AsyncQueryTable(QueryTable):
         Args:
             records (List[Dict]): Записи для вставки в БД.
         """        
-        query = self._insert(records)
+        query = self._query.insert(records)
         async with self._db as db_query:
-            await db_query.execute(query)
+            await db_query.execute(query, self._query.params)
         enabled = await self._cache.is_enabled_cache()
         if enabled:
             await self.delete_cache_table()
@@ -209,9 +310,9 @@ class AsyncQueryTable(QueryTable):
         Args:
             params: Параметры обновления.
         """
-        query = self._update(**params)
+        query = self._query.update(**params)
         async with self._db as db_query:
-            await db_query.execute(query)
+            await db_query.execute(query, self._query.params)
         enabled = await self._cache.is_enabled_cache()
         if enabled:
             await self.delete_cache_table()
@@ -220,9 +321,9 @@ class AsyncQueryTable(QueryTable):
         """Удаляет записи из БД и удаляет 
             кеш (если включен) по данной таблице.
         """
-        query = self._delete()
+        query = self._query.delete()
         async with self._db as db_query:
-            await db_query.execute(query)
+            await db_query.execute(query, self._query.params)
         enabled = await self._cache.is_enabled_cache()
         if enabled:
             await self.delete_cache_table()

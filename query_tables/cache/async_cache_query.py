@@ -1,7 +1,7 @@
 import hashlib
 from typing import Union, List, Dict, Optional, Tuple, Any
 from query_tables.exceptions import NotQuery, NoMatchFieldInCache, DesabledCache
-from query_tables.cache import AsyncBaseCache, TypeCache
+from query_tables.cache.base_cache import AsyncBaseCache, TypeCache
 import asyncio
 from aiocache import Cache
 
@@ -185,11 +185,11 @@ class AsyncCacheQuery(AsyncBaseCache):
         if not identity:
             raise NoMatchFieldInCache()
         if self._hashkey not in self._get_hashkeys_cache():
-            self._set_cache(self._hashkey, [record])
+            await self._set_cache(self._hashkey, [record])
         else:
             data = await self._cache.get(self._hashkey)
             data.append(record)
-            self._set_cache(self._hashkey, data)
+            await self._set_cache(self._hashkey, data)
         return record
         
     async def update(self, params: Dict) -> Union[List[Dict], List]:

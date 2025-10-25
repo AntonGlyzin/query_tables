@@ -5,7 +5,7 @@ import logging
 from settings import logger, BaseTest, tests_dir
 from query_tables.db import SQLiteQuery, AsyncSQLiteQuery, AsyncPostgresQuery, DBConfigPg, PostgresQuery
 from query_tables.tables import Tables, TablesAsync
-from query_tables.query import Join, LeftJoin
+from query_tables.query import Join, LeftJoin, AND, OR, Ordering
 from query_tables.exceptions import DesabledCache, ErrorExecuteJoinQuery
 from query_tables.cache import RedisCache, RedisConnect, AsyncRedisCache
 # from query_tables.utils import logger as qt_log
@@ -110,7 +110,7 @@ class TestTables(BaseTest):
                             'Second entry',
                             98765432109876543,
                             false,
-                            NOW() + INTERVAL '1 hour',
+                            NOW() + INTERVAL '2 day',
                             E'\\\\xfeedfacedeadbeef',
                             'f47ac10b-58cc-4372-a567-0e02b2c3d479'::uuid,
                             '{"foo":"bar","baz":[1,2,3]}',
@@ -266,10 +266,38 @@ class TestTables(BaseTest):
                     Join(table['address'], 'id', 'ref_address', 'compony_addr')
                 ).filter(registration__between=('2020-01-02', '2020-01-06'))
             )
-        ).select(['id', 'name', 'age']).order_by(age='desc').get()
+        ).select(['id', 'name', 'age']).order_by(age=Ordering.DESC).get()
         logger.debug(res)
         self.assertEqual(len(res), 1)
         self.assertEqual(len(res[0].keys()), 17)
+        
+        logger.info('----Сложный join запрос с разной фильтрацией и выбором полей.')
+        query = table['person'].filter(id=1, name__like='Ant%%').join(
+            Join(table['address'], 'id', 'ref_address').filter(OR(AND(street__like='%%ушкина', building=10), AND(building__in=[5,10])))
+        ).join(
+            LeftJoin(table['employees'], 'ref_person', 'id').select(['id', 'ref_person', 'ref_company', 'hired']).join(
+                Join(table['company'], 'id', 'ref_company').join(
+                    Join(table['address'], 'id', 'ref_address', 'compony_addr').filter(AND(street__like='%%эйкер', id=5))
+                ).filter(registration__between=('2021-01-02', '2021-04-06'))
+            )
+        ).select(['id', 'name', 'age']).order_by(age=Ordering.DESC)
+        res = query.get()
+        logger.debug(query._query.get())
+        self.assertEqual(len(res), 1)
+        self.assertEqual(len(res[0].keys()), 17)
+        
+        logger.info('----Запрос с группировкой и having условием.')
+        query=table['company'].group_by(['name', 'registration']).having(
+            OR(registration__between=('2020-01-02', '2020-01-06'), name__like='%%ex')
+        ).select(['name', 'registration'])
+        res = query.get()
+        logger.debug(query._query.get())
+        logger.debug(res)
+        self.assertEqual(len(res), 1)
+        
+        logger.info('----Запрос limit offset.')
+        res=table['company'].order_by(id=Ordering.DESC).limit(1).offset(1).get()
+        self.assertEqual(res[0]['company.name'], 'SD')
         
     async def _async_common_query(self, table: TablesAsync):
         logger.info('----Получение записи по ИД.')
@@ -349,6 +377,37 @@ class TestTables(BaseTest):
         logger.debug(res)
         self.assertEqual(len(res), 1)
         self.assertEqual(len(res[0].keys()), 17)
+        
+        logger.info('----Сложный join запрос с разной фильтрацией и выбором полей.')
+        query = table['person'].filter(id=1, name__like='Ant%%').join(
+            Join(table['address'], 'id', 'ref_address').filter(OR(AND(street__like='%%ушкина', building=10), AND(building__in=[5,10])))
+        ).join(
+            LeftJoin(table['employees'], 'ref_person', 'id').select(['id', 'ref_person', 'ref_company', 'hired']).join(
+                Join(table['company'], 'id', 'ref_company').join(
+                    Join(table['address'], 'id', 'ref_address', 'compony_addr').filter(AND(street__like='%%эйкер', id=5))
+                ).filter(registration__between=('2021-01-02', '2021-04-06'))
+            )
+        ).select(['id', 'name', 'age']).order_by(age=Ordering.DESC)
+        res = await query.get()
+        logger.debug(query._query.get())
+        self.assertEqual(len(res), 1)
+        self.assertEqual(len(res[0].keys()), 17)
+        
+        logger.info('----Запрос с группировкой и having условием.')
+        query=table['company'].select(['name', 'registration']).join(
+            Join(table['employees'], 'ref_company', 'id')
+        ).group_by(['name', 'registration']).having(
+            OR(registration__between=('2020-01-02', '2020-01-06'), name__like='%%ex')
+        )
+        res = await query.get()
+        logger.debug(query._query.get())
+        logger.debug(res)
+        self.assertEqual(len(res), 1)
+        
+        logger.info('----Запрос limit offset.')
+        res= await table['company'].order_by(id=Ordering.DESC).limit(1).offset(1).get()
+        self.assertEqual(res[0]['company.name'], 'SD')
+        
         await table.clear_cache()
         
     def _cache_query(self, c_tables: Tables):
@@ -1031,11 +1090,21 @@ class TestTables(BaseTest):
         logger.debug(data)
         self.assertEqual(len(data), 2)
         
+        logger.info("----Запрос с параметром.")
+        data = self.pg_redis_tables.query(
+            """ 
+                select * from example_data_types
+                where bigint_column = %(bigint_column)s
+            """, params={'bigint_column': 12345678901234567}
+        )
+        logger.debug(data)
+        self.assertEqual(len(data), 1)
+        
         logger.info("----Получение данных и кеширование")
         data = self.pg_redis_tables.query(
             """ 
                 select * from example_data_types
-            """, True
+            """, cache=True
         )
         logger.debug(data)
         self.assertEqual(len(data), 2)
@@ -1049,7 +1118,7 @@ class TestTables(BaseTest):
         data = self.pg_redis_tables.query(
             """ 
                 select * from example_data_types
-            """, True
+            """, cache=True
         )
         logger.debug(data)
         self.assertEqual(len(data), 2)
@@ -1067,11 +1136,21 @@ class TestTables(BaseTest):
             self.assertEqual(len(data), 2)
             self.assertEqual(data[1][1], 'test1')
             
+            logger.info("----Запрос с параметром.")
+            data = await self.async_tables_postgres.query(
+                """ 
+                    select * from example_data_types
+                    where bigint_column = %(bigint_column)s
+                """, params={'bigint_column': 12345678901234567}
+            )
+            logger.debug(data)
+            self.assertEqual(len(data), 1)
+            
             logger.info("----Установить данные в кеш")
             data = await self.async_tables_postgres.query(
                 """ 
                     select * from example_data_types
-                """, True
+                """, cache=True
             )
             logger.debug(data)
             self.assertEqual(len(data), 2)
@@ -1081,7 +1160,7 @@ class TestTables(BaseTest):
             data = await self.async_tables_postgres.query(
                 """ 
                     select * from example_data_types
-                """, True, True
+                """, cache=True, delete_cache=True
             )
             logger.debug(data)
             self.assertEqual(data[1][1], 'test1')
@@ -1109,7 +1188,7 @@ class TestTables(BaseTest):
             data = await self.async_tables_postgres_redis.query(
                 """ 
                     select * from example_data_types
-                """, True
+                """, cache=True
             )
             logger.debug(data)
             self.assertEqual(len(data), 2)
@@ -1120,7 +1199,7 @@ class TestTables(BaseTest):
             await self.async_tables_postgres_redis.query(
                 """ 
                     select * from example_data_types
-                """, True, True
+                """, cache=True, delete_cache=True
             )
             
             
@@ -1128,7 +1207,7 @@ class TestTables(BaseTest):
             data = await self.async_tables_postgres_redis.query(
                 """ 
                     select * from example_data_types
-                """, True
+                """, cache=True
             )
             logger.debug(data)
             self.assertEqual(len(data), 2)
@@ -1138,7 +1217,7 @@ class TestTables(BaseTest):
             await self.async_tables_postgres_redis.query(
                 """ 
                     select * from example_data_types
-                """, False, True
+                """, cache=False, delete_cache=True
             )
         
         self.loop.run_until_complete(case6_remotecache())

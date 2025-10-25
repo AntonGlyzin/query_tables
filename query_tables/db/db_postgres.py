@@ -4,7 +4,8 @@ import time
 from dataclasses import dataclass
 import asyncpg
 import asyncio
-from query_tables.db import BasePostgreDBQuery, BaseAsyncPostgreDBQuery
+from asyncpg.connection import Connection
+from query_tables.db.base_db_query import BasePostgreDBQuery, BaseAsyncPostgreDBQuery
 from query_tables.exceptions import ErrorConnectDB
 from query_tables.translate import _
 from query_tables.utils import logger
@@ -87,14 +88,15 @@ class PostgresQuery(BasePostgreDBQuery):
             self._pool.putconn(self._conn)
             self._conn = None
 
-    def execute(self, query: str) -> 'PostgresQuery':
+    def execute(self, query: str, params: Dict = None) -> 'PostgresQuery':
         """Выполнение запроса.
 
         Args:
             query (str): SQL запрос.
+            params (dict): Параметры.
         """
         try:
-            self._cursor.execute(query)
+            self._cursor.execute(query, params)
             self._conn.commit()
         except Exception as e:
             logger.error(_("Ошибка при выполнении SQL-запроса: {}").format(e))
@@ -120,7 +122,7 @@ class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
     def __init__(self, config: DBConfigPg):
         self._config = config
         self._pool = None
-        self._conn = None
+        self._conn: Connection = None
         self._cursor = None
         self._res = None
         
@@ -170,14 +172,16 @@ class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
             await self._pool.close()
             self._pool = None
 
-    async def execute(self, query: str) -> 'AsyncPostgresQuery':
+    async def execute(self, query: str, params: Dict = None) -> 'AsyncPostgresQuery':
         """Выполнение запроса.
 
         Args:
             query (str): SQL запрос.
+            params (tuple): Параметры.
         """
         try:
-            self._res = await self._conn.fetch(query)
+            sql, param = self.change_placeholder(query, params)
+            self._res = await self._conn.fetch(sql, *param)
         except Exception as e:
             logger.error(_("Ошибка при выполнении SQL-запроса: {}").format(e))
         return self
@@ -188,4 +192,6 @@ class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
         Returns:
             List: Результирующий список.
         """
+        if not self._res:
+            return []
         return [tuple(row) for row in self._res]

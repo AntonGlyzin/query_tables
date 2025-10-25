@@ -1,7 +1,7 @@
-from typing import List, Any
+from typing import List, Any, Dict
 import sqlite3
 import aiosqlite
-from query_tables.db import BaseSQLiteDBQuery, BaseAsyncSQLiteDBQuery
+from query_tables.db.base_db_query import BaseSQLiteDBQuery, BaseAsyncSQLiteDBQuery
 
 
 class SQLiteQuery(BaseSQLiteDBQuery):
@@ -24,13 +24,14 @@ class SQLiteQuery(BaseSQLiteDBQuery):
         if self.conn:
             self.conn.close()
 
-    def execute(self, query: str) -> 'SQLiteQuery':
+    def execute(self, query: str, params: Dict = None) -> 'SQLiteQuery':
         """Выполнение запроса.
 
         Args:
             query (str): SQL запрос.
-        """        
-        self.cursor.execute(query)
+        """
+        sql, param = self.change_placeholder(query, params)
+        self.cursor.execute(sql, param)
         self.conn.commit()
         return self
 
@@ -63,13 +64,14 @@ class AsyncSQLiteQuery(BaseAsyncSQLiteDBQuery):
         if self.conn:
             await self.conn.close()
 
-    async def execute(self, query: str) -> 'AsyncSQLiteQuery':
+    async def execute(self, query: str, params: Dict = None) -> 'AsyncSQLiteQuery':
         """Выполнение запроса.
 
         Args:
             query (str): SQL запрос.
-        """        
-        await self.cursor.execute(query)
+        """
+        sql, param = self.change_placeholder(query, params)
+        await self.cursor.execute(sql, param)
         await self.conn.commit()
         return self
 

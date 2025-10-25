@@ -73,15 +73,6 @@ class ErrorExecuteJoinQuery(ExceptionTable):
         super().__init__(message)
 
 
-class ErrorAliasTableJoinQuery(ExceptionTable):
-    """
-        Ошибка псевдонима у JOIN таблиц.
-    """    
-    def __init__(self, table):
-        message = _("Ошибка псевдонима у JOIN таблицы '{}'. Таблица в запросе используется один раз. Псевдоним не нужен.").format(table)
-        super().__init__(message)
-
-
 class ErrorDeleteCacheJoin(ExceptionTable):
     """
         Ошибка очишения кеша по таблице JOIN.
@@ -133,4 +124,22 @@ class ErrorGetOrSaveStructTable(ExceptionTable):
     """  
     def __init__(self, type_cahe):
         message = _("Для кеша с типом '{}' невозможно сохранять или загружать структуру таблиц.").format(type_cahe)
+        super().__init__(message)
+
+
+class NotExistOperatorFilter(ExceptionTable):
+    """
+        Отсутствие реализации для оператора.
+    """  
+    def __init__(self, operator):
+        message = _("Для такого оператора '{}' нет реализации.").format(operator)
+        super().__init__(message)
+
+
+class DublicatTableNameQuery(ExceptionTable):
+    """
+        Дубликат названия таблицы в запросе.
+    """  
+    def __init__(self, table_name):
+        message = _("Ошибка псевдонима у JOIN таблицы. Название таблицы '{}' повторяется без псевдонима.").format(table_name)
         super().__init__(message)

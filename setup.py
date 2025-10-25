@@ -25,7 +25,6 @@ setup(
         'psycopg2<=2.9.10',
         'asyncpg<=0.30.0',
         'redis<=6.2.0',
-        'MarkupSafe<=3.0.2',
         'aiocache<=0.12.3'
     ],
     python_requires=">=3.9",

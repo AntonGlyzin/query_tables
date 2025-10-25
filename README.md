@@ -1,7 +1,7 @@
 
 # Запросы в объектном стиле без моделей с поддержкой кеша данных (CORMless).
 
-Идея библиотеки заключается, чтобы освободить разработчика от написания моделей. Если вам нравятся запросы ORM от django или sqlalchemy, но при этом вам не хочется создавать модели, то данная библиотека может вам понравиться. Также в ней присутствует функция кеширования данных, что может ускорить выдачу результатов. На данный момент кеширование предусмотренно либо на уровне процесса, либо в редисе. Библиотека расчитана на работу в синхронном и асинхронном режиме.
+Идея библиотеки заключается, чтобы освободить разработчика от написания моделей. Если вам нравятся запросы ORM от django или sqlalchemy, но при этом вам не хочется создавать модели, то данная библиотека может вам понравиться. Также в ней присутствует функция кеширования данных, что может ускорить выдачу результатов. На данный момент кеширование предусмотренно либо на уровне процесса, либо в редисе. Библиотека использует параметризированные запросы для защиты от sql инъекций. Она расчитана на работу в синхронном и асинхронном режиме. 
 
 1. [Установка](#установка)
 2. [Работа с таблицами](#работа-с-таблицами)
@@ -215,6 +215,81 @@ print(res)
 """
 ```
 
+Подготовка параметров и sql запроса происходит отдельно друг от друга. Используется параметризированный запрос для защиты от sql инъекций.
+
+Пример сложного запроса:
+```python
+from query_tables.query import Join, LeftJoin, AND, OR, Ordering
+
+query = table['person'].filter(id=1, name__like='Ant%%').join(
+    Join(table['address'], 'id', 'ref_address').filter(OR(AND(street__like='%%ушкина', building=10), AND(building__in=[5,10])))
+).join(
+    LeftJoin(table['employees'], 'ref_person', 'id').select(['id', 'ref_person', 'ref_company', 'hired']).join(
+        Join(table['company'], 'id', 'ref_company').join(
+            Join(table['address'], 'id', 'ref_address', 'compony_addr').filter(AND(street__like='%%эйкер', id=5))
+        ).filter(registration__between=('2021-01-02', '2021-04-06'))
+    )
+).select(['id', 'name', 'age']).order_by(age=Ordering.DESC)
+res = query.get()
+
+# библиотека сгенерирует такой запрос:
+"""
+select person.id, person.name, person.age, address.id, address.street, address.building, employees.id, employees.ref_person, employees.ref_company, employees.hired, company.id, company.name, company.ref_address, company.registration, compony_addr.id, compony_addr.street, compony_addr.building 
+from person  
+
+join (
+
+    select address.id, address.street, address.building 
+    from address  
+    where ((address.street like %(address_street)s and address.building = %(address_building)s) or (address.building in (%(address_building0)s,%(address_building1)s)))
+
+) as address on address.id = person.ref_address 
+
+left join (
+
+    select employees.id, employees.ref_person, employees.ref_company, employees.hired 
+    from employees
+
+) as employees on employees.ref_person = person.id 
+
+join (
+
+    select company.id, company.name, company.ref_address, company.registration 
+    from company  
+    where (company.registration between %(company_registration0)s and %(company_registration1)s)
+
+) as company on company.id = employees.ref_company 
+
+join (
+
+    select address.id, address.street, address.building 
+    from address  
+    where (address.street like %(compony_addr_street)s and address.id = %(compony_addr_id)s)
+
+) as compony_addr on compony_addr.id = company.ref_address 
+
+where (person.id = %(person_id)s and person.name like %(person_name)s) 
+order by person.age desc
+
+"""
+```
+
+Запрос с группировкой и фильром 
+
+```python
+query=table['company'].select(['name', 'registration']).group_by(['name', 'registration']).having(
+        OR(registration__between=('2020-01-02', '2020-01-06'), name__like='%%ex')
+    )
+
+"""
+select company.name, company.registration 
+from company  
+group by name, registration 
+having (company.registration between %(company_registration0)s and %(company_registration1)s or company.name like %(company_name)s)
+
+"""
+```
+
 Для изменения метода фильтрации в условие можно добавить к модификатору `filter` параметр.
 
 Есть следующие виды параметров в методе `filter`:
@@ -222,24 +297,36 @@ print(res)
 | Параметр | Оператор sql | Пример значений |
 | :-------- | :------- | :--------
 | `ilike` | `ilike` |  `name__ilike='Ant%%'`|
+| `notilike` | `not ilike` |  `name__notilike='Ant%%'`|
 | `like` | `like` |  `name__ilike='Ant%%'`|
+| `notlike` | `not like` |  `name__notlike='Ant%%'`|
 | `in` | `in` |  `id__in=[1,2,3,4]`|
+| `notin` | `notin` |  `id__notin=[1,2,3,4]`|
 | `gt` | `>` |  `age__gt=3`|
 | `gte` | `>=` |  `age__gte=3`|
 | `lt` | `<` |  `age__lt=3`|
 | `lte` | `<=` |  `age__lte=3`|
 | `between` | `between` |  `age__between=(5,6)`|
+| `notbetween` | `notbetween` |  `age__notbetween=(5,6)`|
 | `isnull` | `is null` |  `name__isnull=None`|
 | `isnotnull` | `is not null` |  `name__isnotnull=None`|
 | `notequ` | `!=` |  `age__notequ=5`|
+| `iregex` | `~*` |  `name__iregex='\w+'`|
+| `notiregex` | `!~*` |  `name__iregex='\w+'`|
+| `regex` | `~` |  `name__iregex='\w+'`|
+| `notregex` | `!~` |  `name__iregex='\w+'`|
 
 
-Доступные методы для конструирования запроса SQL из таблицы `table['person']`, а также из`Join` и `LeftJoin`. Данные методы не взаимодействют с БД, они только помогают собрать запрос:
+Доступные методы для конструирования запроса из таблиц `table['person']`, а также из`Join` и `LeftJoin`. Данные методы не взаимодействют с БД, они только помогают собрать запрос:
 - `select`: Для выбора выводимых полей.
 - `join`: Объединение таблиц.
 - `filter`: Правила фильтрации.
+- `group_by`: Группировка.
+- `having`: Фильтрация после группировки.
 - `order_by`: Сортировка для полей.
 - `limit`: Ограничения по количеству.
+- `offset`: Смещение.
+
 
 Для связывания таблиц используется две обертки:
 ```python
@@ -291,12 +378,14 @@ res = query3.get()
 
 Но что если вы измените данные в таблице? Если это сделать вручную из БД, то данные у нас остануться не актуальными. Изменение данных в БД нужно проводить через методы изменения данных по выбранной таблице.
 
+Методы для изменения:
+- `insert`: Вставка записей.
+- `update`: Обновление. 
+- `delete`: Удаление записей.
+
 ```python
 # вставка записей в БД
-table['address'].insert([dict(
-    street='123',
-    building=777
-)])
+table['address'].insert([dict(street='123', building=777)])
 # обновление записей в БД
 table['address'].filter(id=1).update(building=11)
 # удаление записей из БД
@@ -556,6 +645,12 @@ rows = tables.query(query, delete_cache=True)
 В следующий раз получаем данные из БД:
 ```python
 rows = tables.query(query, cache=True)
+```
+
+Запрос с параметрами: 
+```python
+query = 'select * from person where id = %(id)s'
+rows = tables.query(query, params={'id': 1})
 ```
 
 Для асинхронного режима добавляем `await`:

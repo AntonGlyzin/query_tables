@@ -23,7 +23,7 @@ file_handler = logging.FileHandler(tests_dir / 'unit_tests.log', mode='w', encod
 file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
 logger.addHandler(file_handler)
 
-# Параметры подключения к серверу PostgreQL
+# Параметры подключения к серверу PostgreSQL
 DB_NAME = 'query_tables'
 USERNAME = 'postgres' # Обычно postgres
 PASSWORD = 'postgres'
