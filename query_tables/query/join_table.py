@@ -1,10 +1,11 @@
-from query_tables.query.base_query import BaseJoin, BaseQueryTable
+from typing import Union
+from query_tables.query.base_query import BaseQueryTable, BaseQuery, BaseJoin
 
 
-class CommonJoin(BaseJoin, BaseQueryTable):
+class CommonJoin(BaseQuery, BaseJoin):
     
     def __init__(
-        self, join_table: 'BaseQueryTable', 
+        self, join_table: Union['BaseQueryTable', 'BaseQuery'], 
         join_field: str, ext_field: str,
         table_alias: str = ''
     ):
@@ -16,7 +17,7 @@ class CommonJoin(BaseJoin, BaseQueryTable):
             table_alias (str, optional): Псевдоним для таблицы. Нужен когда 
                 одна и таже таблицы соединяется больше одного раза.
         """
-        if hasattr(join_table, '_query'):
+        if issubclass(type(join_table), BaseQueryTable):
             join_table._query._join_field = join_field
             join_table._query._ext_field = ext_field
             join_table._query._table_alias = table_alias
@@ -24,7 +25,7 @@ class CommonJoin(BaseJoin, BaseQueryTable):
             join_table._join_field = join_field
             join_table._ext_field = ext_field
             join_table._table_alias = table_alias
-        self.join_table: 'BaseQueryTable' = join_table
+        self.join_table = join_table
     
     def __getattribute__(self, name):
         try:
@@ -39,11 +40,19 @@ class Join(CommonJoin):
         Обертка для join запросах.
     """    
     def __init__(
-        self, join_table: 'BaseQueryTable', 
+        self, join_table: Union['BaseQueryTable', 'BaseQuery'], 
         join_field: str, ext_field: str,
         table_alias: str = ''
     ):
-        if hasattr(join_table, '_query'):
+        """
+        Args:
+            join_table (BaseQueryTable): Таблица для join к другой таблице.
+            join_field (str): Поле join таблицы.
+            ext_field (str): Поле внешней таблицы.
+            table_alias (str, optional): Псевдоним для таблицы. Нужен когда 
+                одна и таже таблицы соединяется больше одного раза.
+        """
+        if issubclass(type(join_table), BaseQueryTable):
             join_table._query._join_method = 'join'
         else:
             join_table._join_method = 'join'
@@ -58,11 +67,19 @@ class LeftJoin(CommonJoin):
         Обертка для left join запросах.
     """    
     def __init__(
-        self, join_table: 'BaseQueryTable', 
+        self, join_table: Union['BaseQueryTable', 'BaseQuery'], 
         join_field: str, ext_field: str,
         table_alias: str = ''
     ):
-        if hasattr(join_table, '_query'):
+        """
+        Args:
+            join_table (BaseQueryTable): Таблица для join к другой таблице.
+            join_field (str): Поле join таблицы.
+            ext_field (str): Поле внешней таблицы.
+            table_alias (str, optional): Псевдоним для таблицы. Нужен когда 
+                одна и таже таблицы соединяется больше одного раза.
+        """
+        if issubclass(type(join_table), BaseQueryTable):
             join_table._query._join_method = 'left join'
         else:
             join_table._join_method = 'left join'

@@ -110,7 +110,7 @@ class TestTables(BaseTest):
                             'Second entry',
                             98765432109876543,
                             false,
-                            NOW() + INTERVAL '2 day',
+                            NOW() + INTERVAL '2 days',
                             E'\\\\xfeedfacedeadbeef',
                             'f47ac10b-58cc-4372-a567-0e02b2c3d479'::uuid,
                             '{"foo":"bar","baz":[1,2,3]}',

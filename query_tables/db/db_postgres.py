@@ -3,12 +3,36 @@ from psycopg2.pool import ThreadedConnectionPool
 import time
 from dataclasses import dataclass
 import asyncpg
+import re
 import asyncio
 from asyncpg.connection import Connection
-from query_tables.db.base_db_query import BasePostgreDBQuery, BaseAsyncPostgreDBQuery
+from query_tables.db.base_db_query import  DBTypes, BaseDBQuery, BaseAsyncDBQuery
 from query_tables.exceptions import ErrorConnectDB
 from query_tables.translate import _
 from query_tables.utils import logger
+
+
+class PGQueryStruct(object):
+    
+    def pg_query_struct(
+            self, table_schema: str, 
+            prefix_table: str, tables: List
+        ):
+        query = """ 
+            select it.table_name, ic.column_name
+            from information_schema.tables it
+            join information_schema.columns ic on it.table_name = ic.table_name 
+                                                and it.table_schema = ic.table_schema
+            where 1=1 
+        """
+        if table_schema:
+            query += f" and it.table_schema = '{table_schema}'"
+        if prefix_table:
+            query += f" and it.table_name like '{prefix_table}%%'"
+        elif tables:
+            tables = ', '.join(f"'{i}'" for i in tables)
+            query += f" and it.table_name in ({tables})"
+        return query
 
 
 @dataclass
@@ -31,7 +55,7 @@ class DBConfigPg:
         }
 
 
-class PostgresQuery(BasePostgreDBQuery):
+class PostgresQuery(PGQueryStruct, BaseDBQuery):
     
     def __init__(self, config: DBConfigPg):
         self._config = config
@@ -43,7 +67,50 @@ class PostgresQuery(BasePostgreDBQuery):
             if res:
                 break
             time.sleep(3)
-        
+    
+    def get_type(self):
+        return DBTypes.postgres
+    
+    def get_tables_struct(
+            self, table_schema: str = None, 
+            prefix_table: str = None, tables: List = None
+        ) -> Dict[str, List]:
+        """Получение структуры.
+
+        Args:
+            table_schema (str): Название схемы.
+            prefix_table (str): Префикс таблиц.
+            tables (List): Таблицы.
+
+        Returns:
+            Dict[str, List]: Название таблиц и полей.
+        """ 
+        tables_struct: Dict[str, List] = {}
+        query = self.pg_query_struct(table_schema, prefix_table, tables)
+        with self as db_query:
+            db_query.execute(query)
+            data = db_query.fetchall()
+        for row in data:
+            if row[0] in tables_struct:
+                tables_struct[row[0]].append(row[1])
+            else:
+                tables_struct[row[0]] = [row[1]]
+        return tables_struct
+    
+    def change_placeholder(
+            self, sql: str, params: dict = None
+        ) -> Tuple[str, List]:
+        """Замена плейсхолдеров для текущей БД.
+
+        Args:
+            sql (str): sql.
+            params (dict): Параметры.
+
+        Returns:
+            Tuple[str, List]: sql и параметры (может быть изменен порядок).
+        """
+        return sql, params
+    
     def create_pool(self):
         """
             Создаем пул соединений.
@@ -117,7 +184,7 @@ class PostgresQuery(BasePostgreDBQuery):
                 logger.error(_("Ошибка при получение результата из запроса: {}").format(e))
 
 
-class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
+class AsyncPostgresQuery(PGQueryStruct, BaseAsyncDBQuery):
     
     def __init__(self, config: DBConfigPg):
         self._config = config
@@ -126,6 +193,57 @@ class AsyncPostgresQuery(BaseAsyncPostgreDBQuery):
         self._cursor = None
         self._res = None
         
+    def get_type(self):
+        return DBTypes.postgres
+    
+    async def get_tables_struct(
+            self, table_schema: str = None, 
+            prefix_table: str = None, tables: List = None
+        ) -> Dict[str, List]:
+        """Получение структуры.
+
+        Args:
+            table_schema (str): Название схемы.
+            prefix_table (str): Префикс таблиц.
+            tables (List): Таблицы.
+
+        Returns:
+            Dict[str, List]: Название таблиц и полей.
+        """ 
+        tables_struct: Dict[str, List] = {}
+        query = self.pg_query_struct(table_schema, prefix_table, tables)
+        async with self as db_query:
+            await db_query.execute(query)
+            data = await db_query.fetchall()
+        for row in data:
+            if row[0] in tables_struct:
+                tables_struct[row[0]].append(row[1])
+            else:
+                tables_struct[row[0]] = [row[1]]
+        return tables_struct
+    
+    def change_placeholder(
+            self, sql: str, params: dict = None
+        ) -> Tuple[str, List]:
+        """Замена плейсхолдеров для текущей БД.
+
+        Args:
+            sql (str): sql.
+            params (dict): Параметры.
+
+        Returns:
+            Tuple[str, List]: sql и параметры (может быть изменен порядок).
+        """
+        if not params:
+            return sql, []
+        names = re.findall(self.pattern, sql)
+        values = [params[name] for name in names]
+        converted_sql = sql
+        for i, name in enumerate(names, 1):
+            new_name = self.placeholder.format(name)
+            converted_sql = converted_sql.replace(new_name, f'${i}')
+        return converted_sql, values
+    
     async def _create_pool(self):
         """ Создаем пул соединений к БД. """
         try:

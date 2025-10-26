@@ -29,8 +29,8 @@ class BaseTables(object):
             tables (Optional[List[str]], optional): Список подключаемых таблиц. По умолчанию - нет.
             table_schema (str, optional): Схема данных. По умолчанию - 'public'.
         """
-        self._db: Union[BaseDBQuery, BaseAsyncDBQuery] = db
-        self._cls_query_table: Type[Union[QueryTable, AsyncQueryTable]] = cls_query_table
+        self._db = db
+        self._cls_query_table = cls_query_table
         self._cache: BaseCache = None
         self._prefix_table: str = prefix_table
         self._tables: Optional[List[str]] = tables
@@ -41,7 +41,7 @@ class BaseTables(object):
                 Query.PLACEHOLDER
             )
     
-    def __getitem__(self, table_name: str) -> QueryTable:
+    def __getitem__(self, table_name: str) -> Union[QueryTable, AsyncQueryTable]:
         """Получение экземпляра для запроса.
 
         Args:
@@ -80,7 +80,7 @@ class Tables(BaseTables):
     ):
         """
         Args:
-            db (Union[BaseDBQuery, BaseAsyncDBQuery]): Объект для доступа к БД.
+            db (BaseDBQuery): Объект для доступа к БД.
             prefix_table (str, optional): Префикс таблиц которые нужно загрузить. По умолчанию - пустая строка.
                 Загружает таблцы по первой части названия, к примеру: common%. Если пустая строка, загрузить все таблицы из схемы.
             tables (Optional[List[str]], optional): Список подключаемых таблиц. По умолчанию - нет.
@@ -101,11 +101,11 @@ class Tables(BaseTables):
             )
     
     def query(
-        self, sql: str,
-        params: dict = None,
-        cache: bool = False,
-        delete_cache: bool = False
-    ) -> Optional[List[Tuple]]:
+            self, sql: str,
+            params: dict = None,
+            cache: bool = False,
+            delete_cache: bool = False
+        ) -> Optional[List[Tuple]]:
         """Выполнение произвольного SQL запроса.
         Могут выполняться запросы на изменения и получения данных.
 
@@ -150,11 +150,11 @@ class TablesAsync(BaseTables):
         table_schema:str = 'public',
         cache_ttl: int = 0,
         non_expired: bool = False,
-        cache: Optional[Union[BaseCache, AsyncBaseCache]] = None
+        cache: Optional[AsyncBaseCache] = None
     ):
         """
         Args:
-            db (Union[BaseDBQuery, BaseAsyncDBQuery]): Объект для доступа к БД.
+            db (BaseAsyncDBQuery): Объект для доступа к БД.
             prefix_table (str, optional): Префикс таблиц которые нужно загрузить. По умолчанию - пустая строка.
                 Загружает таблцы по первой части названия, к примеру: common%. Если пустая строка, загрузить все таблицы из схемы.
             tables (Optional[List[str]], optional): Список подключаемых таблиц. По умолчанию - нет.
@@ -175,11 +175,11 @@ class TablesAsync(BaseTables):
             )
     
     async def query(
-        self, sql: str,
-        params: dict = None,
-        cache: bool = False,
-        delete_cache: bool = False
-    ) -> Optional[List[Tuple]]:
+            self, sql: str,
+            params: dict = None,
+            cache: bool = False,
+            delete_cache: bool = False
+        ) -> Optional[List[Tuple]]:
         """Выполнение произвольного SQL запроса.
         Могут выполняться запросы на изменения и получения данных.
 

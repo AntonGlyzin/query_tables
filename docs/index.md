@@ -307,12 +307,12 @@ having (company.registration between %(company_registration0)s and %(company_reg
 | `isnotnull` | `is not null` |  `name__isnotnull=None`|
 | `notequ` | `!=` |  `age__notequ=5`|
 | `iregex` | `~*` |  `name__iregex='\w+'`|
-| `notiregex` | `!~*` |  `name__iregex='\w+'`|
-| `regex` | `~` |  `name__iregex='\w+'`|
-| `notregex` | `!~` |  `name__iregex='\w+'`|
+| `notiregex` | `!~*` |  `name__notiregex='\w+'`|
+| `regex` | `~` |  `name__regex='\w+'`|
+| `notregex` | `!~` |  `name__notregex='\w+'`|
 
 
-Доступные методы для конструирования запроса из таблиц `table['person']`, а также из`Join` и `LeftJoin`. Данные методы не взаимодействют с БД, они только помогают собрать запрос:
+Доступные методы для конструирования запроса из таблиц `table['person']`, а также из`Join` и `LeftJoin`:
 - `select`: Для выбора выводимых полей.
 - `join`: Объединение таблиц.
 - `filter`: Правила фильтрации.
@@ -321,6 +321,8 @@ having (company.registration between %(company_registration0)s and %(company_reg
 - `order_by`: Сортировка для полей.
 - `limit`: Ограничения по количеству.
 - `offset`: Смещение.
+
+Данные методы не взаимодействют с БД, они только помогают собрать запрос
 
 Для связывания таблиц используется две обертки:
 ```python

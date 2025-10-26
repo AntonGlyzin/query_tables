@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Union, Any, List, Optional, Dict, Tuple
 from query_tables.query.base_query import BaseQuery, BaseJoin
-from query_tables.query.join_table import CommonJoin
 from query_tables.query.condition import AND, Condition
 from query_tables.exceptions import (
     NotFieldQueryTable, 
@@ -129,7 +128,7 @@ class Query(BaseQuery):
             self._map_select.append(f'{self._table_name}.{field}')
         return self
 
-    def join(self, table: Union[BaseJoin, 'Query']) -> 'Query':
+    def join(self, table: Union['BaseJoin', 'Query']) -> 'Query':
         """Присоединение таблиц через join оператор sql. 
 
         Args:
@@ -138,7 +137,7 @@ class Query(BaseQuery):
         Returns:
             Query: Экземпляр запроса.
         """
-        if issubclass(type(table), CommonJoin):
+        if issubclass(type(table), BaseJoin):
             table = table.join_table
         self._exist_field(table._ext_field)
         table._exist_field(table._join_field)

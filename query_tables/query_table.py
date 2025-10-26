@@ -1,19 +1,18 @@
-from typing import List, Dict, Union, Optional
+from typing import List, Dict, Optional, TypeVar, Union
 from query_tables.cache import BaseCache, AsyncBaseCache
 from query_tables.db import BaseDBQuery, BaseAsyncDBQuery
-from query_tables.query.join_table import BaseJoin, CommonJoin
-from query_tables.query.base_query import BaseQueryTable
+from query_tables.query.base_query import BaseQueryTable, BaseJoin
 from query_tables.query import Query
 from query_tables.exceptions import (
     ErrorDeleteCacheJoin,
     DesabledCache
 )
 
+T = TypeVar('T', bound='BuilderQueryTable')
 
-class QueryTable(BaseQueryTable):
-    """
-        Объединяет работу с запросами и кешем.
-    """    
+
+class BuilderQueryTable(object):
+    
     def __init__(
         self, db: object, 
         table_name: str,
@@ -25,11 +24,129 @@ class QueryTable(BaseQueryTable):
             db (BaseDBQuery): Объект для доступа к БД.
             table_name (str): Название таблицы.
             fields List[str]: Список полей.
-            cache (Union[BaseCache, AsyncBaseCache]): Кеш.
+            cache (BaseCache): Кеш.
         """
-        self._db: Union[BaseDBQuery, BaseAsyncDBQuery] = db
-        self._cache: Union[BaseCache, AsyncBaseCache] = cache
         self._query = Query(table_name, fields)
+    
+    def select(self: T, fields: Optional[List[str]] = None) -> T:
+        """Устанавливает поля для выборки.
+
+        Args:
+            fields (List[str]): Поля из БД.
+
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """
+        self._query.select(fields)
+        return self
+
+    def join(self: T, table: Union[BaseJoin, BaseQueryTable]) -> T:
+        """Присоединение таблиц через join оператор sql. 
+
+        Args:
+            table (Union[BaseJoin, BaseQueryTable]): Таблица которая присоединяется.
+
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """
+        if issubclass(type(table), BaseJoin):
+            query: Query = table.join_table._query
+        else:
+            query: Query = table._query
+        self._query.join(query)
+        return self
+
+    def filter(self: T, *args, **params) -> T:
+        """Добавление фильтров в where блок запроса sql.
+        
+        Args:
+            params: Параметры выборки.
+
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """
+        self._query.filter(*args, **params)
+        return self
+    
+    def group_by(self: T, params: list[str]) -> T:
+        """Группировка записей по полю.
+
+        Args:
+            params (list[str]): Список строк.
+
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """        
+        self._query.group_by(params)
+        return self
+    
+    def having(self: T, *args, **params) -> T:
+        """Добавление фильтров в having блок запроса sql.
+        
+        Args:
+            params: Параметры выборки.
+
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """
+        self._query.having(*args, **params)
+        return self
+
+    def order_by(self: T, **kwargs) -> T:
+        """Сортировка для sql запроса.
+
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """
+        self._query.order_by(**kwargs)
+        return self
+
+    def limit(self: T, value: int) -> T:
+        """Ограничение записей в sql запросе.
+
+        Args:
+            value (int): Количество записей.
+        
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """
+        self._query.limit(value)
+        return self
+    
+    def offset(self: T, value: int) -> T:
+        """Смещение.
+
+        Args:
+            value (int): Смещение по записям.
+        
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """
+        self._query.offset(value)
+        return self
+
+
+class QueryTable(BuilderQueryTable, BaseQueryTable):
+    """
+        Объединяет работу с запросами и кешем.
+    """    
+    def __init__(
+        self, db: object, 
+        table_name: str,
+        fields: List[str],
+        cache: BaseCache
+    ):
+        """
+        Args:
+            db (BaseDBQuery): Объект для доступа к БД.
+            table_name (str): Название таблицы.
+            fields List[str]: Список полей.
+            cache (BaseCache): Кеш.
+        """
+        self._db: BaseDBQuery = db
+        self._cache: BaseCache = cache
+        self._query: Query = None
+        super().__init__(db, table_name, fields, cache)
 
     @property
     def cache(self) -> BaseCache:
@@ -121,106 +238,9 @@ class QueryTable(BaseQueryTable):
             db_query.execute(query, self._query.params)
         if self._cache.is_enabled_cache():
             self.delete_cache_table()
-    
-    def select(self, fields: Optional[List[str]] = None) -> 'QueryTable':
-        """Устанавливает поля для выборки.
-
-        Args:
-            fields (List[str]): Поля из БД.
-
-        Returns:
-            QueryTable: Экземпляр запроса.
-        """
-        self._query.select(fields)
-        return self
-
-    def join(self, table: Union[BaseJoin, 'QueryTable']) -> 'QueryTable':
-        """Присоединение таблиц через join оператор sql. 
-
-        Args:
-            table (BaseJoin): Таблица которая присоединяется.
-
-        Returns:
-            QueryTable: Экземпляр запроса.
-        """
-        if issubclass(type(table), CommonJoin):
-            query = table.join_table._query
-        else:
-            query = table._query
-        self._query.join(query)
-        return self
-
-    def filter(self, *args, **params) -> 'QueryTable':
-        """Добавление фильтров в where блок запроса sql.
-        
-        Args:
-            params: Параметры выборки.
-
-        Returns:
-            QueryTable: Экземпляр запроса.
-        """
-        self._query.filter(*args, **params)
-        return self
-    
-    def group_by(self, params: list[str]) -> 'QueryTable':
-        """Группировка записей по полю.
-
-        Args:
-            params (list[str]): Список строк.
-
-        Returns:
-            QueryTable: Экземпляр запроса.
-        """        
-        self._query.group_by(params)
-        return self
-    
-    def having(self, *args, **params) -> 'QueryTable':
-        """Добавление фильтров в having блок запроса sql.
-        
-        Args:
-            params: Параметры выборки.
-
-        Returns:
-            QueryTable: Экземпляр запроса.
-        """
-        self._query.having(*args, **params)
-        return self
-
-    def order_by(self, **kwargs) -> 'QueryTable':
-        """Сортировка для sql запроса.
-
-        Returns:
-            QueryTable: Экземпляр запроса.
-        """
-        self._query.order_by(**kwargs)
-        return self
-
-    def limit(self, value: int) -> 'QueryTable':
-        """Ограничение записей в sql запросе.
-
-        Args:
-            value (int): Количество записей.
-        
-        Returns:
-            QueryTable: Экземпляр запроса.
-        """
-        self._query.limit(value)
-        return self
-    
-    def offset(self, value: int) -> 'QueryTable':
-        """Смещение.
-
-        Args:
-            value (int): Смещение по записям.
-        
-        Returns:
-            QueryTable: Экземпляр запроса.
-        """
-        self._query.offset(value)
-        return self
 
 
-class AsyncQueryTable(QueryTable):
+class AsyncQueryTable(BuilderQueryTable, BaseQueryTable):
     """
         Объединяет работу с запросами и удаленным кешем в асинхронном режиме.
     """    
@@ -237,6 +257,9 @@ class AsyncQueryTable(QueryTable):
             fields List[str]: Список полей.
             cache (AsyncBaseCache): Кеш.
         """
+        self._db: BaseAsyncDBQuery = db
+        self._cache: AsyncBaseCache = cache
+        self._query: Query = None
         super().__init__(db, table_name, fields, cache)
         
     @property

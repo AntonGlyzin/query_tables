@@ -1,9 +1,7 @@
 from query_tables.db.base_db_query import (
-    BaseDBQuery, BasePostgreDBQuery, 
-    BaseSQLiteDBQuery, DBTypes, 
+    BaseDBQuery, 
+    DBTypes, 
     BaseAsyncDBQuery,
-    BaseAsyncPostgreDBQuery,
-    BaseAsyncSQLiteDBQuery
 )
 from query_tables.db.db_sqlite import SQLiteQuery, AsyncSQLiteQuery
 from query_tables.db.db_postgres import DBConfigPg, PostgresQuery, AsyncPostgresQuery
@@ -11,20 +9,10 @@ from query_tables.db.db_postgres import DBConfigPg, PostgresQuery, AsyncPostgres
 __all__ = [
     'BaseDBQuery',
     'BaseAsyncDBQuery',
-    
-    'BasePostgreDBQuery',
-    'BaseSQLiteDBQuery',
-    
-    'BaseAsyncPostgreDBQuery',
-    'BaseAsyncSQLiteDBQuery',
-    
     'SQLiteQuery',
     'AsyncSQLiteQuery',
-    
     'DBConfigPg',
     'PostgresQuery',
     'AsyncPostgresQuery',
-    
     'DBTypes'
-    
 ]

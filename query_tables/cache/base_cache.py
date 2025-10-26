@@ -1,7 +1,6 @@
 from abc import ABC
 from typing import Union, List, Dict, Optional, Tuple
 from dataclasses import dataclass
-from query_tables.exceptions import ErrorGetOrSaveStructTable
 
 
 @dataclass
@@ -156,8 +155,7 @@ class BaseCache(ABC):
         Returns:
             Optional[Dict[str, List[str]]]: Структура таблиц.
         """        
-        if self.type_cache == TypeCache.local:
-            raise ErrorGetOrSaveStructTable(self.type_cache)
+        ...
         
     def _save_struct_tables(self, struct: Dict[str, List[str]]):
         """Сохранение в кеше структуры таблиц.
@@ -165,8 +163,7 @@ class BaseCache(ABC):
         Args:
             struct (Dict[str, List[str]]): Структура таблиц.
         """        
-        if self.type_cache == TypeCache.local:
-            raise ErrorGetOrSaveStructTable(self.type_cache)
+        ...
 
 
 class AsyncBaseCache(ABC):
