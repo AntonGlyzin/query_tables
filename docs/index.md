@@ -207,6 +207,10 @@ print(res)
 ```python
 table['person'].select(['id', 'name', 'name'])
 ```
+Или можно так:
+```python
+table['person'].select('id', 'name', 'name')
+```
 
 При использование класса `Field` поля могут указывать на другие таблицы.
 ```python
@@ -519,7 +523,7 @@ order by person.age desc
 Простой запрос с группировкой и фильтром для одной таблицы: 
 
 ```python
-query=table['company'].select(['name', 'registration']).group_by(['name', 'registration']).having(
+query=table['company'].select('name', 'registration').group_by('name', 'registration').having(
         OR(registration__between=('2020-01-02', '2020-01-06'), name__like='%%ex')
     )
 ```

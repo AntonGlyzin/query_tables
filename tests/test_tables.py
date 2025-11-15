@@ -263,7 +263,7 @@ class TestTables(BaseTest):
         res = table['person'].filter(id=2).join(
             Join(table['address'], 'id', 'ref_address')
         ).join(
-            LeftJoin(table['employees'], 'ref_person', 'id').select(['id', 'ref_person', 'ref_company', 'hired']).join(
+            LeftJoin(table['employees'], 'ref_person', 'id').select('id', 'ref_person', 'ref_company', 'hired').join(
                 Join(table['company'], 'id', 'ref_company').join(
                     Join(table['address'], 'id', 'ref_address', 'compony_addr')
                 ).filter(registration__between=('2020-01-02', '2020-01-06'))
@@ -287,7 +287,7 @@ class TestTables(BaseTest):
         self.assertEqual(len(res), 1)
         
         logger.info('----Запрос с группировкой и having условием.')
-        query=table['company'].group_by(['name', 'registration']).having(
+        query=table['company'].group_by('name', 'registration').having(
             OR(registration__between=('2020-01-02', '2020-01-06'), name__like='%%ex')
         ).select(['name', 'registration'])
         res = query.get()
@@ -298,6 +298,10 @@ class TestTables(BaseTest):
         logger.info('----Запрос limit offset.')
         res=table['company'].order_by(id=Ordering.DESC).limit(1).offset(1).get()
         self.assertEqual(res[0]['company.name'], 'SD')
+        
+        logger.info('----Запрос distinct.')
+        res=table['employees'].select('ref_company').distinct().get()
+        self.assertEqual(len(res), 2)
         
     async def _async_common_query(self, table: TablesAsync):
         logger.info('----Получение записи по ИД.')

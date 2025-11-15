@@ -38,7 +38,16 @@ class BuilderQueryTable(object):
     def __repr__(self):
         return str(self)
     
-    def select(self: T, *args: Union[Field, Functions, List[str]]) -> T:
+    def distinct(self: T) -> T:
+        """Включает distinct в запрос. 
+        
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """        
+        self._query.distinct()
+        return self
+    
+    def select(self: T, *args: Union[Field, Functions, str, List[str]]) -> T:
         """Устанавливает поля для выборки.
 
         Args:
@@ -79,7 +88,7 @@ class BuilderQueryTable(object):
         self._query.filter(*args, **params)
         return self
     
-    def group_by(self: T, *args: Union[Field, List[str]]) -> T:
+    def group_by(self: T, *args: Union[Field, str, List[str]]) -> T:
         """Группировка записей по полю.
 
         Args:

@@ -7,7 +7,6 @@ class BaseFunctions(ABC): ...
 
 class BaseJoin(ABC): ...
 
-
 class BaseQueryTable(object): ...
 
 
@@ -43,8 +42,16 @@ class BaseQuery(ABC):
             Участвует ли таблица в JOIN связке.
         """
         ...
+    
+    def distinct(self) -> 'BaseQuery':
+        """Включает distinct в запрос. 
+        
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """
+        ...
 
-    def select(self, *args: Union[BaseField, BaseFunctions, List[str]]) -> 'BaseQuery':
+    def select(self, *args: Union[BaseField, BaseFunctions, str, List[str]]) -> 'BaseQuery':
         """Устанавливает поля для выборки.
 
         Args:
@@ -78,7 +85,7 @@ class BaseQuery(ABC):
         """
         ...
     
-    def group_by(self, *args: Union[BaseField, List[str]]) -> 'BaseQuery':
+    def group_by(self, *args: Union[BaseField, str, List[str]]) -> 'BaseQuery':
         """Группировка записей по полю.
 
         Args:

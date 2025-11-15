@@ -62,6 +62,7 @@ class Query(BaseQuery):
             f'{self._table_name}.{field}' 
             for field in self._fields
         ]
+        self._distinct = ''
         self._joined_tables: List['Query'] = []
         self._where: List[Union[Condition, ListOperators]] = []
         self._group_by: List[Union[Field, Functions]] = []
@@ -122,7 +123,16 @@ class Query(BaseQuery):
             return True
         return False
     
-    def select(self, *args: Union[Field, Functions, List[str]]) -> 'Query':
+    def distinct(self) -> 'Query':
+        """Включает distinct в запрос. 
+        
+        Returns:
+            QueryTable: Экземпляр запроса.
+        """        
+        self._distinct = 'distinct '
+        return self
+    
+    def select(self, *args: Union[Field, Functions, str, List[str]]) -> 'Query':
         """Устанавливает поля для выборки.
 
         Args:
@@ -140,6 +150,8 @@ class Query(BaseQuery):
             elif isinstance(field, list):
                 for field_name in field:
                     self._user_fields.append(Field(self._table_name, field_name)._set_query(self))
+            elif isinstance(field, str):
+                self._user_fields.append(Field(self._table_name, field)._set_query(self))
         return self
 
     def join(self, table: Union['BaseJoin', 'Query']) -> 'Query':
@@ -177,7 +189,7 @@ class Query(BaseQuery):
             self._where.append(AND(**params)._set_query(self))
         return self
     
-    def group_by(self, *args: Union[Field, List[str]]) -> 'Query':
+    def group_by(self, *args: Union[Field, str, List[str]]) -> 'Query':
         """Группировка записей по полю.
 
         Args:
@@ -192,6 +204,8 @@ class Query(BaseQuery):
             elif isinstance(field, list):
                 for field_name in field:
                     self._group_by.append(Field(self._table_name, field_name)._set_query(self))
+            elif isinstance(field, str):
+                self._group_by.append(Field(self._table_name, field)._set_query(self))
         return self
     
     def having(self, *args: Union[Condition, Functions, Field], **params) -> 'Query':
@@ -464,7 +478,7 @@ class Query(BaseQuery):
         join_map = self._build_join_map_select()
         map_select.extend(join_map)
         if select:
-            res = 'select {}'.format(', '.join([*select, *join_map]))
+            res = 'select {}{}'.format(self._distinct, ', '.join([*select, *join_map]))
             self._map_select.extend(map_select)
         else:
             self._map_select = [
@@ -472,7 +486,7 @@ class Query(BaseQuery):
                 for field in self._fields
             ]
             self._map_select.extend([*join_map])
-            res = 'select {}'.format(', '.join(self._map_select))
+            res = 'select {}{}'.format(self._distinct, ', '.join(self._map_select))
         return res
     
     def _build_filter(self) -> str:

@@ -31,6 +31,9 @@ class TestFunctions(BaseTest):
             logger.info('----Ошибка удаление временной БД.')
     
     def test_case_1(self):
+        res=self.tables['employees'].select('ref_company').distinct().get()
+        self.assertEqual(len(res), 2)
+        
         query = self.tables['person'].filter(id=2)
         logger.debug(query._query.get())
         len_fields1 = len(query._query.map_fields)

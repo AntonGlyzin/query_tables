@@ -30,7 +30,7 @@ setup(
     python_requires=">=3.9",
     author='Антон Глызин',
     author_email='tosha.glyzin@mail.ru',
-    description='Запросы в объектном стиле без моделей с поддержкой кеша данных (CORMless).',
+    description='Запросы в объектном стиле без моделей с поддержкой кеша данных (CORMless)',
     long_description=long_description,
     long_description_content_type="text/markdown",
     license='MIT',
