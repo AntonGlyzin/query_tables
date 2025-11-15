@@ -135,13 +135,14 @@ class AsyncRedisCache(AsyncBaseCache):
             self._filter_params.clear()
             return data
 
-    async def set_data(self, data: List[Dict]):
+    async def set_data(self, data: List[Dict], tables: List[str] = None):
         """Сохранить в кеш данные.
 
         Args:
             data (List[Dict]): Результирующие данные из БД.
+            tables: List[str]: Список таблиц.
         """
-        tables = self._get_tables_from_fields(data)
+        tables = tables or self._get_tables_from_fields(data)
         await self._save_hashkey_in_tables(tables, self._hashkey)
         async with self._redis as client:
             await client.set(f'{self._key_queries}:{self._hashkey}', self._encode_data(data))

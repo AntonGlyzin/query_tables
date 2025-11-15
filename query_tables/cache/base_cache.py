@@ -48,6 +48,14 @@ class BaseCache(ABC):
         """
         ...
         
+    def use_tables(self, tables: List[str]):
+        """Таблицы использующиеся в запросе.
+
+        Args:
+            tables (List[str]): Список таблиц.
+        """
+        ...
+        
     def get(self) -> Union[List[Dict], List]:
         """Получение данных из кеша по условию или без условия.
 
@@ -227,11 +235,12 @@ class AsyncBaseCache(ABC):
         """        
         ...
 
-    async def set_data(self, data: List[Dict]):
+    async def set_data(self, data: List[Dict], tables: List[str] = None):
         """Сохранить в кеш данные.
 
         Args:
             data (List[Dict]): Результирующие данные из БД.
+            tables: List[str]: Список таблиц.
         """
         ...
 

@@ -1,6 +1,9 @@
 from abc import ABC
-from typing import List, Optional, Dict, Union
+from typing import List, Dict, Union
 
+class BaseField(ABC): ...
+
+class BaseFunctions(ABC): ...
 
 class BaseJoin(ABC): ...
 
@@ -27,7 +30,7 @@ class BaseQuery(ABC):
 
     @property
     def tables_query(self) -> List[str]:
-        """Привязанные JOIN таблицы к запросу.
+        """Таблицы участвующие в запросе.
 
         Returns:
             List: Список таблиц.
@@ -41,11 +44,11 @@ class BaseQuery(ABC):
         """
         ...
 
-    def select(self, fields: Optional[List[str]] = None) -> 'BaseQuery':
+    def select(self, *args: Union[BaseField, BaseFunctions, List[str]]) -> 'BaseQuery':
         """Устанавливает поля для выборки.
 
         Args:
-            fields (List[str]): Поля из БД.
+            args : Поля из БД. `Field('company', 'name'), Max(Field('person', 'age')).as_('person_age')` или `['id', 'name']`
 
         Returns:
             BaseQuery: Экземпляр запроса.
@@ -63,41 +66,47 @@ class BaseQuery(ABC):
         """ 
         ...
 
-    def filter(self, **params) -> 'BaseQuery':
+    def filter(self, *args: Union[BaseJoin, BaseFunctions, BaseField], **params) -> 'BaseQuery':
         """Добавление фильтров в where блок запроса sql.
         
         Args:
-            params: Параметры выборки.
+            args: Параметры выборки. `AND(Max(Field('person', 'age')).gt(30), Field('company', 'registration').gt('2021-03-2'))`
+            params: Параметры выборки. `registration__between=('2021-01-02', '2021-04-06')`
 
         Returns:
             BaseQuery: Экземпляр запроса.
         """
         ...
     
-    def group_by(self, params: list[str]) -> 'BaseQuery':
+    def group_by(self, *args: Union[BaseField, List[str]]) -> 'BaseQuery':
         """Группировка записей по полю.
 
         Args:
-            params (list[str]): Список строк.
+            args: Поля для группировки. `Field('company', 'name')` или `['name']`
 
         Returns:
             BaseQuery: Экземпляр запроса.
         """
         ...
     
-    def having(self, **params) -> 'BaseQuery':
+    def having(self, *args: Union[BaseJoin, BaseFunctions, BaseField], **params) -> 'BaseQuery':
         """Добавление фильтров в having блок запроса sql.
         
         Args:
-            params: Параметры выборки.
+            args: Параметры выборки. `AND(Max(Field('person', 'age')).gt(30), Field('company', 'registration').gt('2021-03-2'))`
+            params: Параметры выборки. `registration__between=('2021-01-02', '2021-04-06')`
 
         Returns:
             BaseQuery: Экземпляр запроса.
         """
         ...
 
-    def order_by(self, **params) -> 'BaseQuery':
+    def order_by(self, *args: Union[BaseField], **kwargs) -> 'BaseQuery':
         """Сортировка для sql запроса.
+        
+        Args:
+            args: Параметры сортировки. `Field('company', 'name').desc()`
+            params: Параметры сортировки. `age=Ordering.DESC`
 
         Returns:
             BaseQuery: Экземпляр запроса.

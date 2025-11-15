@@ -1,6 +1,8 @@
-from typing import List, Dict, Optional, TypeVar, Union
+from typing import List, Dict, TypeVar, Union
 from query_tables.cache import BaseCache, AsyncBaseCache
 from query_tables.db import BaseDBQuery, BaseAsyncDBQuery
+from query_tables.query.functions import Field, Functions
+from query_tables.query.condition import Condition
 from query_tables.query.base_query import BaseQueryTable, BaseJoin
 from query_tables.query import Query
 from query_tables.exceptions import (
@@ -27,17 +29,25 @@ class BuilderQueryTable(object):
             cache (BaseCache): Кеш.
         """
         self._query = Query(table_name, fields)
+        
+    def __str__(self):
+        table_alias = self._query._table_alias or self._query._table_name
+        cls_name = __class__.__name__
+        return f'<{cls_name}({table_alias})>'
     
-    def select(self: T, fields: Optional[List[str]] = None) -> T:
+    def __repr__(self):
+        return str(self)
+    
+    def select(self: T, *args: Union[Field, Functions, List[str]]) -> T:
         """Устанавливает поля для выборки.
 
         Args:
-            fields (List[str]): Поля из БД.
+            args : Поля из БД. `Field('company', 'name'), Max(Field('person', 'age')).as_('person_age')` или `['id', 'name']`
 
         Returns:
             QueryTable: Экземпляр запроса.
         """
-        self._query.select(fields)
+        self._query.select(*args)
         return self
 
     def join(self: T, table: Union[BaseJoin, BaseQueryTable]) -> T:
@@ -56,11 +66,12 @@ class BuilderQueryTable(object):
         self._query.join(query)
         return self
 
-    def filter(self: T, *args, **params) -> T:
+    def filter(self: T, *args: Union[Condition, Functions, Field], **params) -> T:
         """Добавление фильтров в where блок запроса sql.
         
         Args:
-            params: Параметры выборки.
+            args: Параметры выборки. `AND(Max(Field('person', 'age')).gt(30), Field('company', 'registration').gt('2021-03-2'))`
+            params: Параметры выборки. `registration__between=('2021-01-02', '2021-04-06')`
 
         Returns:
             QueryTable: Экземпляр запроса.
@@ -68,23 +79,24 @@ class BuilderQueryTable(object):
         self._query.filter(*args, **params)
         return self
     
-    def group_by(self: T, params: list[str]) -> T:
+    def group_by(self: T, *args: Union[Field, List[str]]) -> T:
         """Группировка записей по полю.
 
         Args:
-            params (list[str]): Список строк.
+            args: Поля для группировки. `Field('company', 'name')` или `['name']`
 
         Returns:
             QueryTable: Экземпляр запроса.
         """        
-        self._query.group_by(params)
+        self._query.group_by(*args)
         return self
     
-    def having(self: T, *args, **params) -> T:
+    def having(self: T, *args: Union[Condition, Functions, Field], **params) -> T:
         """Добавление фильтров в having блок запроса sql.
         
         Args:
-            params: Параметры выборки.
+            args: Параметры выборки. `AND(Max(Field('person', 'age')).gt(30), Field('company', 'registration').gt('2021-03-2'))`
+            params: Параметры выборки. `registration__between=('2021-01-02', '2021-04-06')`
 
         Returns:
             QueryTable: Экземпляр запроса.
@@ -92,13 +104,17 @@ class BuilderQueryTable(object):
         self._query.having(*args, **params)
         return self
 
-    def order_by(self: T, **kwargs) -> T:
+    def order_by(self: T, *args: Union[Field], **kwargs) -> T:
         """Сортировка для sql запроса.
+        
+        Args:
+            args: Параметры сортировки. `Field('company', 'name').desc()`
+            params: Параметры сортировки. `age=Ordering.DESC`
 
         Returns:
             QueryTable: Экземпляр запроса.
         """
-        self._query.order_by(**kwargs)
+        self._query.order_by(*args, **kwargs)
         return self
 
     def limit(self: T, value: int) -> T:
@@ -201,6 +217,7 @@ class QueryTable(BuilderQueryTable, BaseQueryTable):
         ]
         if self._cache.is_enabled_cache() and res:
             self._cache[query] = res
+            self._cache[query].use_tables(self._query.tables_query)
         return res
 
     def insert(self, records: List[Dict]): 
@@ -309,7 +326,7 @@ class AsyncQueryTable(BuilderQueryTable, BaseQueryTable):
             dict(zip(self._query.map_fields, row)) for row in data
         ]
         if enabled and res:
-            await self._cache[query].set_data(res)
+            await self._cache[query].set_data(res, self._query.tables_query)
         return res
 
     async def insert(self, records: List[Dict]): 

@@ -127,14 +127,14 @@ class AsyncCacheQuery(AsyncBaseCache):
         await self._delete_hashkey_in_tables(self._hashkey)
         return []
 
-    async def set_data(self, data: List[Dict]):
+    async def set_data(self, data: List[Dict], tables: List[str] = None):
         """Сохранить в кеш данные.
 
         Args:
-            query (str): SQL запрос.
             data (List[Dict]): Результирующие данные из БД.
+            tables: List[str]: Список таблиц.
         """
-        tables = self._get_tables_from_fields(data)
+        tables = tables or self._get_tables_from_fields(data)
         await self._save_hashkey_in_tables(tables, self._hashkey)
         await self._set_cache(self._hashkey, data)
 

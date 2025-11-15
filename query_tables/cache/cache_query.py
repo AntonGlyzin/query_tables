@@ -120,6 +120,14 @@ class CacheQuery(BaseCache):
     def _getitem_(self, query: str) -> 'BaseCache':
         self._hashkey = self._get_hashkey_query(query)
         return self
+    
+    def use_tables(self, tables: List[str]):
+        """Таблицы использующиеся в запросе.
+
+        Args:
+            tables (List[str]): Список таблиц.
+        """        
+        self._save_hashkey_in_tables(tables, self._hashkey)
         
     def get(self) -> Union[List[Dict], List]:
         """Получение данных из кеша по условию или без условия.
@@ -388,6 +396,8 @@ class CacheQuery(BaseCache):
         for table in tables:
             if self._tables.get(table) is None:
                 self._tables[table] = [hashkey]
+                continue
+            if hashkey in self._tables[table]:
                 continue
             self._tables[table].append(hashkey)
 

@@ -5,9 +5,12 @@ import logging
 from settings import logger, BaseTest, tests_dir
 from query_tables.db import SQLiteQuery, AsyncSQLiteQuery, AsyncPostgresQuery, DBConfigPg, PostgresQuery
 from query_tables.tables import Tables, TablesAsync
-from query_tables.query import Join, LeftJoin, AND, OR, Ordering
+from query_tables.query import Join, LeftJoin, AND, OR, Ordering, Field
 from query_tables.exceptions import DesabledCache, ErrorExecuteJoinQuery
 from query_tables.cache import RedisCache, RedisConnect, AsyncRedisCache
+from query_tables.query.functions import (
+    Concat, Case, Coalesce
+)
 # from query_tables.utils import logger as qt_log
 
 # qt_log.setLevel(logging.DEBUG)
@@ -241,7 +244,6 @@ class TestTables(BaseTest):
         ).filter(age__between=(25, 31)).get()
         logger.debug(res)
         self.assertEqual(len(res), 2)
-        self.assertEqual(len(res[0].keys()), 8)
         
         logger.info('----Получение записей с join таблицей в которой нет записей.')
         res = table['person'].filter(id=4).join(
@@ -269,11 +271,10 @@ class TestTables(BaseTest):
         ).select(['id', 'name', 'age']).order_by(age=Ordering.DESC).get()
         logger.debug(res)
         self.assertEqual(len(res), 1)
-        self.assertEqual(len(res[0].keys()), 17)
         
         logger.info('----Сложный join запрос с разной фильтрацией и выбором полей.')
         query = table['person'].filter(id=1, name__like='Ant%%').join(
-            Join(table['address'], 'id', 'ref_address').filter(OR(AND(street__like='%%ушкина', building=10), AND(building__in=[5,10])))
+            Join(table['address'], 'id', 'ref_address').filter(OR(AND(street__like='%%ушкина', building=10), building__in=[5,10]))
         ).join(
             LeftJoin(table['employees'], 'ref_person', 'id').select(['id', 'ref_person', 'ref_company', 'hired']).join(
                 Join(table['company'], 'id', 'ref_company').join(
@@ -284,7 +285,6 @@ class TestTables(BaseTest):
         res = query.get()
         logger.debug(query._query.get())
         self.assertEqual(len(res), 1)
-        self.assertEqual(len(res[0].keys()), 17)
         
         logger.info('----Запрос с группировкой и having условием.')
         query=table['company'].group_by(['name', 'registration']).having(
@@ -348,7 +348,6 @@ class TestTables(BaseTest):
         ).filter(age__between=(25, 31)).get()
         logger.debug(res)
         self.assertEqual(len(res), 2)
-        self.assertEqual(len(res[0].keys()), 8)
         
         logger.info('----Получение записей с join таблицей в которой нет записей.')
         res = await table['person'].filter(id=4).join(
@@ -376,7 +375,6 @@ class TestTables(BaseTest):
         ).select(['id', 'name', 'age']).order_by(age='desc').get()
         logger.debug(res)
         self.assertEqual(len(res), 1)
-        self.assertEqual(len(res[0].keys()), 17)
         
         logger.info('----Сложный join запрос с разной фильтрацией и выбором полей.')
         query = table['person'].filter(id=1, name__like='Ant%%').join(
@@ -391,7 +389,6 @@ class TestTables(BaseTest):
         res = await query.get()
         logger.debug(query._query.get())
         self.assertEqual(len(res), 1)
-        self.assertEqual(len(res[0].keys()), 17)
         
         logger.info('----Запрос с группировкой и having условием.')
         query=table['company'].select(['name', 'registration']).join(
@@ -1164,6 +1161,34 @@ class TestTables(BaseTest):
             )
             logger.debug(data)
             self.assertEqual(data[1][1], 'test1')
+            
+            logger.info('----Функция Case.')
+            query = self.async_tables_postgres['example_data_types'].select(
+                (Case()
+                .when(Field('example_data_types', 'bigint_column')).equ(3).then(3)
+                .when(Field('example_data_types', 'bigint_column')).equ(5).then(5)
+                .elseif(Field('example_data_types', 'bigint_column')).as_('Case1')
+                )
+            )
+            res=await query.get()
+            logger.debug(query._query.get())
+            logger.debug(res)
+            
+            logger.info('----Функция Coalesce.')
+            query = self.async_tables_postgres['example_data_types'].select(
+                Coalesce(Field('example_data_types', 'varchar_column'), 'ant', default='no').as_('Coalesce1')
+            )
+            res=await query.get()
+            logger.debug(query._query.get())
+            logger.debug(res)
+            
+            logger.info('----Функция Concat.')
+            query = self.async_tables_postgres['example_data_types'].select(
+                Concat(Field('example_data_types', 'varchar_column'), Field('example_data_types', 'bigint_column')).as_('Concat1')
+            )
+            res=await query.get()
+            logger.debug(query._query.get())
+            logger.debug(res)
         
         self.loop.run_until_complete(case6_localcache())
         

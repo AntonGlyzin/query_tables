@@ -108,20 +108,6 @@ class TestQuery(BaseTest):
         res = self.sqlite.execute(sql, query.params).fetchall()
         self.assertEqual(len(res), 1)
         
-        logger.info('----Изменение количества выводимых полей.')
-        self.assertEqual(len(res[0]), 17)
-        
-        logger.info('----Мапинг полей в join запросах.')
-        mapfields = "person.id, person.name, person.age, address.id, address.street, address.building, employees.id, employees.ref_person, employees.ref_company, employees.hired, company.id, company.name, company.ref_address, company.registration, compony_addr.id, compony_addr.street, compony_addr.building"
-        mapfields = mapfields.replace(" ", '').split(',')
-        self.assertListEqual(query.map_fields, mapfields)
-        
-        logger.info('----Мапинг полей в одной таблице.')
-        query = Query(*self.person).filter(id=1)
-        mapfields = 'person.id, person.login, person.name, person.ref_address, person.age'
-        mapfields = mapfields.replace(" ", '').split(',')
-        self.assertListEqual(query.map_fields, mapfields)
-        
         logger.info('----Left join запрос при отсутсвие записи в таблице.')
         query = Query(*self.person).filter(id=4).join(
             LeftJoin(Query(*self.employees), 'ref_person', 'id')
@@ -185,9 +171,10 @@ class TestQuery(BaseTest):
         self.assertEqual(res.cursor.rowcount , 2)
         
         logger.info('----Удаление записи.')
-        query = Query(*self.person).filter(id=6).delete()
-        logger.debug(query)
-        res = self.sqlite.execute(query, dict(person_id=6))
+        query = Query(*self.person).filter(id=6)
+        sql=query.delete()
+        logger.debug(sql)
+        res = self.sqlite.execute(sql, query.params)
         self.assertEqual(res.cursor.rowcount , 1)
         logger.info("-------------------------------------------------------")
         

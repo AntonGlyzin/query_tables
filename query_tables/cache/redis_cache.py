@@ -155,6 +155,14 @@ class RedisCache(BaseCache):
             self._delete_hashkey_in_tables(self._hashkey)
         return self
     
+    def use_tables(self, tables: List[str]):
+        """Таблицы использующиеся в запросе.
+
+        Args:
+            tables (List[str]): Список таблиц.
+        """        
+        self._save_hashkey_in_tables(tables, self._hashkey)
+    
     def get(self) -> Union[List[Dict], List]:
         """Получение данных из кеша по условию или без условия.
 
