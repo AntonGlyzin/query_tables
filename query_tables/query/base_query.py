@@ -167,11 +167,11 @@ class BaseQuery(ABC):
         """        
         ...
 
-    def insert(self, records: List[Dict]) -> str:
+    def insert(self, *args: Union[List[Dict]], **params) -> str:
         """Вставка записи.
         
         Args:
-            params: Параметры для вставки.
+            records: Параметры для вставки.
             
         Raise:
             ErrorExecuteJoinQuery: Запретить выполнять с join таблицами.

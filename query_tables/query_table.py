@@ -229,14 +229,14 @@ class QueryTable(BuilderQueryTable, BaseQueryTable):
             self._cache[query].use_tables(self._query.tables_query)
         return res
 
-    def insert(self, records: List[Dict]): 
+    def insert(self, *args: Union[List[Dict]], **params): 
         """Добавляет записи в БД и удаляет 
         кеш (если включен) по данной таблице.
 
         Args:
             records (List[Dict]): Записи для вставки в БД.
         """        
-        query = self._query.insert(records)
+        query = self._query.insert(*args, **params)
         with self._db as db_query:
             db_query.execute(query, self._query.params)
         if self._cache.is_enabled_cache():

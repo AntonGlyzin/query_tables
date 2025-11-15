@@ -349,7 +349,7 @@ class Query(BaseQuery):
             f"{where}"
         ).strip()
     
-    def insert(self, records: List[Dict]):
+    def insert(self, *args: Union[List[Dict]], **params):
         """Вставка записи.
         
         Args:
@@ -358,9 +358,9 @@ class Query(BaseQuery):
         Raise:
             ErrorExecuteJoinQuery: Запретить выполнять с join таблицами.
         """
-        return self._insert(records)
+        return self._insert(*args, **params)
 
-    def _insert(self, records: List[Dict]) -> str:
+    def _insert(self, *args: Union[List[Dict]], **params) -> str:
         """Вставка записи.
         
         Args:
@@ -375,6 +375,10 @@ class Query(BaseQuery):
         self._params = {}
         if self.is_table_joined:
             raise ErrorExecuteJoinQuery('insert')
+        if args and issubclass(type(args[0]), list):
+            records = args[0]
+        else:
+            records = [params]
         fields = list(records[0].keys())
         self._exist_fields(fields)
         into_values = []

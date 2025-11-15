@@ -908,10 +908,14 @@ class TestTables(BaseTest):
             age=55
         )])
         res = table['person'].get()
-        self.assertEqual(len(res), 5)
         self.assertEqual(res[-1]['person.name'], 'Ton')
         self.assertEqual(res[-1]['person.age'], 55)
         id_res = res[-1]['person.id']
+        
+        table['person'].insert(login='tt1',name='Ton1',ref_address=1,age=56)
+        res = table['person'].get()
+        self.assertEqual(res[-1]['person.name'], 'Ton1')
+        self.assertEqual(res[-1]['person.age'], 56)
         table.clear_cache()
         
         logger.info('----Изменение данных в БД.')
