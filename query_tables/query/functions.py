@@ -1,6 +1,7 @@
+from __future__ import annotations
 from datetime import datetime
 from typing import Any, List, Literal, Union, TypeVar
-from query_tables.query.base_query import BaseQuery, BaseField, BaseFunctions
+from query_tables.query.base_query import BaseQuery
 
 
 PLACEHOLDER = '%({})s'
@@ -215,7 +216,7 @@ class ListOperators(object):
         return self
 
 
-class Field(ListOperators, BaseField):
+class Field(ListOperators):
     """ Поле для фильтрации или выборки. """
     def __init__(self, table: str, field_name: str):
         super().__init__(field_name)
@@ -245,7 +246,7 @@ class Field(ListOperators, BaseField):
         return self._query._check_field(self._table, self._field_name, exc)
 
 
-class Functions(ListOperators, BaseFunctions):
+class Functions(ListOperators):
     
     def __init__(self, fn_field: str = ''):
         alias = self.__class__.__name__.lower()
@@ -262,7 +263,7 @@ class Functions(ListOperators, BaseFunctions):
             ])
         return field_value.strip()
     
-    def _get_key_params(self, value: Union['Field', Any]) -> str:
+    def _get_key_params(self, value: Union[Field, Any]) -> str:
         """Возвращает строку ключ для вставки в sql.
 
         Args:
@@ -280,7 +281,7 @@ class Functions(ListOperators, BaseFunctions):
         self._query._params.update({ key_name: value })
         return name
     
-    def as_(self, name: str) -> 'Functions':
+    def as_(self, name: str) -> Functions:
         self._as_name = name
         return self
 

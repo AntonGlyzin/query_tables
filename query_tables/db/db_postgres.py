@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import List, Any, Dict, Tuple
 from psycopg2.pool import ThreadedConnectionPool
 import time
@@ -137,7 +138,7 @@ class PostgresQuery(PGQueryStruct, BaseDBQuery):
             self._pool.closeall()
             self._pool = None
     
-    def connect(self) -> 'PostgresQuery':
+    def connect(self) -> PostgresQuery:
         """ Открываем соединение с курсором. """
         try:
             self._conn = self._pool.getconn()
@@ -155,7 +156,7 @@ class PostgresQuery(PGQueryStruct, BaseDBQuery):
             self._pool.putconn(self._conn)
             self._conn = None
 
-    def execute(self, query: str, params: Dict = None) -> 'PostgresQuery':
+    def execute(self, query: str, params: Dict = None) -> PostgresQuery:
         """Выполнение запроса.
 
         Args:
@@ -271,7 +272,7 @@ class AsyncPostgresQuery(PGQueryStruct, BaseAsyncDBQuery):
             await self._pool.close()
             self._pool = None
             
-    async def connect(self) -> 'AsyncPostgresQuery':
+    async def connect(self) -> AsyncPostgresQuery:
         """ Открываем соединение с курсором. """
         try:
             if self._pool is None:
@@ -290,7 +291,7 @@ class AsyncPostgresQuery(PGQueryStruct, BaseAsyncDBQuery):
             await self._pool.close()
             self._pool = None
 
-    async def execute(self, query: str, params: Dict = None) -> 'AsyncPostgresQuery':
+    async def execute(self, query: str, params: Dict = None) -> AsyncPostgresQuery:
         """Выполнение запроса.
 
         Args:

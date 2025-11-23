@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import List, Any, Dict, Tuple
 from abc import ABC
 from dataclasses import dataclass
@@ -57,7 +58,7 @@ class BaseDBQuery(ABC):
         """        
         ...
     
-    def connect(self) -> 'BaseDBQuery':
+    def connect(self) -> BaseDBQuery:
         """ Открываем соединение с курсором. """
         ...
         
@@ -65,7 +66,7 @@ class BaseDBQuery(ABC):
         """ Закрываем соединение с курсором. """
         ...
     
-    def __enter__(self) -> 'BaseDBQuery':
+    def __enter__(self) -> BaseDBQuery:
         """Открывает соединение или получаем из пула."""
         self.connect()
         return self
@@ -74,7 +75,7 @@ class BaseDBQuery(ABC):
         """Закрывает соединение с БД."""
         self.close()
 
-    def execute(self, query: str) -> 'BaseDBQuery':
+    def execute(self, query: str) -> BaseDBQuery:
         """Выполнение запроса.
 
         Args:
@@ -139,7 +140,7 @@ class BaseAsyncDBQuery(ABC):
         """        
         ...
     
-    async def connect(self) -> 'BaseAsyncDBQuery':
+    async def connect(self) -> BaseAsyncDBQuery:
         """ Открываем соединение с курсором. """
         ...
         
@@ -147,7 +148,7 @@ class BaseAsyncDBQuery(ABC):
         """ Закрываем соединение с курсором. """
         ...
     
-    async def __aenter__(self) -> 'BaseAsyncDBQuery':
+    async def __aenter__(self) -> BaseAsyncDBQuery:
         """Открывает соединение или получаем из пула."""
         await self.connect()
         return self
@@ -156,7 +157,7 @@ class BaseAsyncDBQuery(ABC):
         """Закрывает соединение с БД."""
         await self.close()
 
-    async def execute(self, query: str) -> 'BaseAsyncDBQuery':
+    async def execute(self, query: str) -> BaseAsyncDBQuery:
         """Выполнение запроса.
 
         Args:

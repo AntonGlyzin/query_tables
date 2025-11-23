@@ -1,3 +1,4 @@
+from __future__ import annotations
 from abc import ABC
 from typing import Union, List, Dict, Optional, Tuple
 from dataclasses import dataclass
@@ -37,7 +38,7 @@ class BaseCache(ABC):
         """
         ...
         
-    def __getitem__(self, query: str) -> 'BaseCache':
+    def __getitem__(self, query: str) -> BaseCache:
         """Устанавливает контекст SQL запроса.
 
         Args:
@@ -81,7 +82,7 @@ class BaseCache(ABC):
         """        
         ...
 
-    def filter(self, params: Dict) -> 'BaseCache':
+    def filter(self, params: Dict) -> BaseCache:
         """Условие для выборки записей в кеше.
         Выборка учитывает точное совпадение значений.
         

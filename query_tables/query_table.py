@@ -1,4 +1,5 @@
-from typing import List, Dict, TypeVar, Union
+from __future__ import annotations
+from typing import List, Dict, TypeVar, Union, TYPE_CHECKING
 from query_tables.cache import BaseCache, AsyncBaseCache
 from query_tables.db import BaseDBQuery, BaseAsyncDBQuery
 from query_tables.query.functions import Field, Functions
@@ -10,10 +11,13 @@ from query_tables.exceptions import (
     DesabledCache
 )
 
+if TYPE_CHECKING:
+    from query_tables.query.join_table import CommonJoin
+
 T = TypeVar('T', bound='BuilderQueryTable')
 
 
-class BuilderQueryTable(object):
+class BuilderQueryTable(BaseQueryTable):
     
     def __init__(
         self, db: object, 
@@ -42,7 +46,7 @@ class BuilderQueryTable(object):
         """Включает distinct в запрос. 
         
         Returns:
-            QueryTable: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """        
         self._query.distinct()
         return self
@@ -54,19 +58,19 @@ class BuilderQueryTable(object):
             args : Поля из БД. `Field('company', 'name'), Max(Field('person', 'age')).as_('person_age')` или `['id', 'name']`
 
         Returns:
-            QueryTable: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """
         self._query.select(*args)
         return self
 
-    def join(self: T, table: Union[BaseJoin, BaseQueryTable]) -> T:
+    def join(self: T, table: Union[CommonJoin, BuilderQueryTable]) -> T:
         """Присоединение таблиц через join оператор sql. 
 
         Args:
-            table (Union[BaseJoin, BaseQueryTable]): Таблица которая присоединяется.
+            table (Union[CommonJoin, BuilderQueryTable]): Таблица которая присоединяется.
 
         Returns:
-            QueryTable: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """
         if issubclass(type(table), BaseJoin):
             query: Query = table.join_table._query
@@ -83,7 +87,7 @@ class BuilderQueryTable(object):
             params: Параметры выборки. `registration__between=('2021-01-02', '2021-04-06')`
 
         Returns:
-            QueryTable: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """
         self._query.filter(*args, **params)
         return self
@@ -95,7 +99,7 @@ class BuilderQueryTable(object):
             args: Поля для группировки. `Field('company', 'name')` или `['name']`
 
         Returns:
-            QueryTable: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """        
         self._query.group_by(*args)
         return self
@@ -108,7 +112,7 @@ class BuilderQueryTable(object):
             params: Параметры выборки. `registration__between=('2021-01-02', '2021-04-06')`
 
         Returns:
-            QueryTable: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """
         self._query.having(*args, **params)
         return self
@@ -121,7 +125,7 @@ class BuilderQueryTable(object):
             params: Параметры сортировки. `age=Ordering.DESC`
 
         Returns:
-            QueryTable: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """
         self._query.order_by(*args, **kwargs)
         return self
@@ -133,7 +137,7 @@ class BuilderQueryTable(object):
             value (int): Количество записей.
         
         Returns:
-            QueryTable: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """
         self._query.limit(value)
         return self
@@ -145,13 +149,13 @@ class BuilderQueryTable(object):
             value (int): Смещение по записям.
         
         Returns:
-            QueryTable: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """
         self._query.offset(value)
         return self
 
 
-class QueryTable(BuilderQueryTable, BaseQueryTable):
+class QueryTable(BuilderQueryTable):
     """
         Объединяет работу с запросами и кешем.
     """    
@@ -266,7 +270,7 @@ class QueryTable(BuilderQueryTable, BaseQueryTable):
             self.delete_cache_table()
 
 
-class AsyncQueryTable(BuilderQueryTable, BaseQueryTable):
+class AsyncQueryTable(BuilderQueryTable):
     """
         Объединяет работу с запросами и удаленным кешем в асинхронном режиме.
     """    

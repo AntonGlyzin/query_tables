@@ -1,3 +1,4 @@
+from __future__ import annotations
 import hashlib
 from cachetools import TTLCache, LRUCache
 from typing import Union, List, Dict, Iterator, Optional, Tuple
@@ -102,7 +103,7 @@ class CacheQuery(BaseCache):
             self._delete_hashkey_in_tables(hashkey)
         return True
         
-    def __getitem__(self, query: str) -> 'BaseCache':
+    def __getitem__(self, query: str) -> BaseCache:
         """Устанавливает контекст SQL запроса.
 
         Args:
@@ -117,7 +118,7 @@ class CacheQuery(BaseCache):
             raise DesabledCache()
         return self._getitem_(query)
     
-    def _getitem_(self, query: str) -> 'BaseCache':
+    def _getitem_(self, query: str) -> BaseCache:
         self._hashkey = self._get_hashkey_query(query)
         return self
     
@@ -179,7 +180,7 @@ class CacheQuery(BaseCache):
         self._cache.pop(hashkey, None)
         self._delete_hashkey_in_tables(hashkey)
         
-    def filter(self, params: Dict) -> 'BaseCache':
+    def filter(self, params: Dict) -> BaseCache:
         """Условие для выборки записей в кеше.
         Выборка учитывает точное совпадение значений.
         

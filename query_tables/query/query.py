@@ -1,5 +1,6 @@
+from __future__ import annotations
 from datetime import datetime
-from typing import Union, Any, List, Dict, Tuple
+from typing import Union, Any, List, Dict, Tuple, TYPE_CHECKING
 from query_tables.query.base_query import BaseQuery, BaseJoin
 from query_tables.query.condition import AND, Condition
 from query_tables.query.functions import (
@@ -16,6 +17,9 @@ from query_tables.exceptions import (
     DublicatTableNameQuery,
     NotExistOperatorFilter
 )
+
+if TYPE_CHECKING:
+    from query_tables.query.join_table import CommonJoin
 
 
 class Query(BaseQuery):
@@ -63,7 +67,7 @@ class Query(BaseQuery):
             for field in self._fields
         ]
         self._distinct = ''
-        self._joined_tables: List['Query'] = []
+        self._joined_tables: List[Query] = []
         self._where: List[Union[Condition, ListOperators]] = []
         self._group_by: List[Union[Field, Functions]] = []
         self._having: List[Union[Condition, ListOperators]] = []
@@ -123,7 +127,7 @@ class Query(BaseQuery):
             return True
         return False
     
-    def distinct(self) -> 'Query':
+    def distinct(self) -> Query:
         """Включает distinct в запрос. 
         
         Returns:
@@ -132,7 +136,7 @@ class Query(BaseQuery):
         self._distinct = 'distinct '
         return self
     
-    def select(self, *args: Union[Field, Functions, str, List[str]]) -> 'Query':
+    def select(self, *args: Union[Field, Functions, str, List[str]]) -> Query:
         """Устанавливает поля для выборки.
 
         Args:
@@ -154,11 +158,11 @@ class Query(BaseQuery):
                 self._user_fields.append(Field(self._table_name, field)._set_query(self))
         return self
 
-    def join(self, table: Union['BaseJoin', 'Query']) -> 'Query':
+    def join(self, table: Union[CommonJoin, Query]) -> Query:
         """Присоединение таблиц через join оператор sql. 
 
         Args:
-            table (BaseJoin): Таблица которая присоединяется.
+            table (CommonJoin): Таблица которая присоединяется.
 
         Returns:
             Query: Экземпляр запроса.
@@ -172,7 +176,7 @@ class Query(BaseQuery):
         self._check_field(table._ext_table, table._ext_field)
         return self
 
-    def filter(self, *args: Union[Condition, Functions, Field], **params) -> 'Query':
+    def filter(self, *args: Union[Condition, Functions, Field], **params) -> Query:
         """Добавление фильтров в where блок запроса sql.
         
         Args:
@@ -189,7 +193,7 @@ class Query(BaseQuery):
             self._where.append(AND(**params)._set_query(self))
         return self
     
-    def group_by(self, *args: Union[Field, str, List[str]]) -> 'Query':
+    def group_by(self, *args: Union[Field, str, List[str]]) -> Query:
         """Группировка записей по полю.
 
         Args:
@@ -208,7 +212,7 @@ class Query(BaseQuery):
                 self._group_by.append(Field(self._table_name, field)._set_query(self))
         return self
     
-    def having(self, *args: Union[Condition, Functions, Field], **params) -> 'Query':
+    def having(self, *args: Union[Condition, Functions, Field], **params) -> Query:
         """Добавление фильтров в having блок запроса sql.
         
         Args:
@@ -225,7 +229,7 @@ class Query(BaseQuery):
             self._having.append(AND(**params)._set_query(self))
         return self
 
-    def order_by(self, *args: Union[Field], **kwargs) -> 'Query':
+    def order_by(self, *args: Union[Field], **kwargs) -> Query:
         """Сортировка для sql запроса.
         
         Args:
@@ -244,7 +248,7 @@ class Query(BaseQuery):
                 self._order_by.append(order_fn())
         return self
 
-    def limit(self, value: int) -> 'Query':
+    def limit(self, value: int) -> Query:
         """Ограничение записей в sql запросе.
 
         Args:
@@ -256,7 +260,7 @@ class Query(BaseQuery):
         self._limit = f' limit {value} '
         return self
     
-    def offset(self, value: int) -> 'Query':
+    def offset(self, value: int) -> Query:
         """Смещение.
 
         Args:

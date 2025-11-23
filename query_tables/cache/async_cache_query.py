@@ -1,3 +1,4 @@
+from __future__ import annotations
 import hashlib
 from typing import Union, List, Dict, Optional, Tuple, Any
 from query_tables.exceptions import NotQuery, NoMatchFieldInCache, DesabledCache
@@ -90,7 +91,7 @@ class AsyncCacheQuery(AsyncBaseCache):
             await self._delete_hashkey_in_tables(hashkey)
         return True
         
-    def __getitem__(self, query: str) -> 'AsyncBaseCache':
+    def __getitem__(self, query: str) -> AsyncBaseCache:
         """Устанавливает контекст SQL запроса.
 
         Args:
@@ -147,7 +148,7 @@ class AsyncCacheQuery(AsyncBaseCache):
         await self._cache.delete(self._hashkey)
         await self._delete_hashkey_in_tables(self._hashkey)
     
-    def filter(self, params: Dict) -> 'AsyncBaseCache':
+    def filter(self, params: Dict) -> AsyncBaseCache:
         """Условие для выборки записей в кеше.
         Выборка учитывает точное совпадение значений.
         

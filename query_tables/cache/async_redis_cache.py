@@ -1,3 +1,4 @@
+from __future__ import annotations
 import hashlib
 import asyncio
 from redis import asyncio as aioredis
@@ -105,7 +106,7 @@ class AsyncRedisCache(AsyncBaseCache):
             await self._delete_hashkey_in_tables(hashkey)
         return True
 
-    def __getitem__(self, query: str) -> 'AsyncBaseCache':
+    def __getitem__(self, query: str) -> AsyncBaseCache:
         """Устанавливает контекст SQL запроса.
 
         Args:
@@ -153,7 +154,7 @@ class AsyncRedisCache(AsyncBaseCache):
             await client.delete(f'{self._key_queries}:{self._hashkey}')
         await self._delete_hashkey_in_tables(self._hashkey)
 
-    def filter(self, params: Dict) -> 'AsyncBaseCache':
+    def filter(self, params: Dict) -> AsyncBaseCache:
         """Условие для выборки записей в кеше.
         Выборка учитывает точное совпадение значений.
         

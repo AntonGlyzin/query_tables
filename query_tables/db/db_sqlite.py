@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import List, Any, Dict, Tuple
 import sqlite3
 import aiosqlite
@@ -76,7 +77,7 @@ class SQLiteQuery(Placeholders, BaseDBQuery):
             self.close()
         return tables_struct
     
-    def connect(self) -> 'SQLiteQuery':
+    def connect(self) -> SQLiteQuery:
         """ Открываем соединение с курсором. """
         self.conn = sqlite3.connect(self._path)
         self.cursor = self.conn.cursor()
@@ -89,7 +90,7 @@ class SQLiteQuery(Placeholders, BaseDBQuery):
         if self.conn:
             self.conn.close()
 
-    def execute(self, query: str, params: Dict = None) -> 'SQLiteQuery':
+    def execute(self, query: str, params: Dict = None) -> SQLiteQuery:
         """Выполнение запроса.
 
         Args:
@@ -159,7 +160,7 @@ class AsyncSQLiteQuery(Placeholders, BaseAsyncDBQuery):
             await self.close()
         return tables_struct
     
-    async def connect(self) -> 'AsyncSQLiteQuery':
+    async def connect(self) -> AsyncSQLiteQuery:
         """ Открываем соединение с курсором. """
         self.conn = await aiosqlite.connect(self._path)
         self.cursor = await self.conn.cursor()
@@ -172,7 +173,7 @@ class AsyncSQLiteQuery(Placeholders, BaseAsyncDBQuery):
         if self.conn:
             await self.conn.close()
 
-    async def execute(self, query: str, params: Dict = None) -> 'AsyncSQLiteQuery':
+    async def execute(self, query: str, params: Dict = None) -> AsyncSQLiteQuery:
         """Выполнение запроса.
 
         Args:

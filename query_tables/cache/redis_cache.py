@@ -1,3 +1,4 @@
+from __future__ import annotations
 import hashlib
 import redis
 import json
@@ -134,7 +135,7 @@ class RedisCache(BaseCache):
             self._delete_hashkey_in_tables(_hashkey)
         return True
 
-    def __getitem__(self, query: str) -> 'BaseCache':
+    def __getitem__(self, query: str) -> BaseCache:
         """Устанавливает контекст SQL запроса.
 
         Args:
@@ -145,7 +146,7 @@ class RedisCache(BaseCache):
         """
         return self._getitem_(query)
     
-    def _getitem_(self, query: str) -> 'BaseCache':
+    def _getitem_(self, query: str) -> BaseCache:
         self._res = []
         self._hashkey = self._get_hashkey_query(query)
         res_str = self._redis.get(f'{self._key_queries}:{self._hashkey}')
@@ -204,7 +205,7 @@ class RedisCache(BaseCache):
         self._redis.delete(f'{self._key_queries}:{hashkey}')
         self._delete_hashkey_in_tables(hashkey)
 
-    def filter(self, params: Dict) -> 'BaseCache':
+    def filter(self, params: Dict) -> BaseCache:
         """Условие для выборки записей в кеше.
         Выборка учитывает точное совпадение значений.
         

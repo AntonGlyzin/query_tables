@@ -1,16 +1,18 @@
+from __future__ import annotations
 from abc import ABC
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Protocol, TYPE_CHECKING
 
-class BaseField(ABC): ...
+if TYPE_CHECKING:
+    from query_tables.query.join_table import CommonJoin
+    from query_tables.query.functions import Field, Functions
+    from query_tables.query_table import BuilderQueryTable
 
-class BaseFunctions(ABC): ...
 
 class BaseJoin(ABC): ...
 
-class BaseQueryTable(object): ...
+class BaseQueryTable(ABC): ...
 
-
-class BaseQuery(ABC):
+class BaseQuery(Protocol):
     
     @property
     def params(self):
@@ -43,37 +45,37 @@ class BaseQuery(ABC):
         """
         ...
     
-    def distinct(self) -> 'BaseQuery':
+    def distinct(self) -> BuilderQueryTable:
         """Включает distinct в запрос. 
         
         Returns:
-            QueryTable: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """
         ...
 
-    def select(self, *args: Union[BaseField, BaseFunctions, str, List[str]]) -> 'BaseQuery':
+    def select(self, *args: Union[Field, Functions, str, List[str]]) -> BuilderQueryTable:
         """Устанавливает поля для выборки.
 
         Args:
             args : Поля из БД. `Field('company', 'name'), Max(Field('person', 'age')).as_('person_age')` или `['id', 'name']`
 
         Returns:
-            BaseQuery: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """
         ...
 
-    def join(self, table: Union[BaseJoin, 'BaseQuery']) -> 'BaseQuery':
+    def join(self, table: Union[CommonJoin, BuilderQueryTable]) -> BuilderQueryTable:
         """Присоединение таблиц через join оператор sql. 
 
         Args:
-            table (Union[BaseJoin, 'BaseQuery']): Таблица которая присоединяется.
+            table (Union[CommonJoin, BuilderQueryTable]): Таблица которая присоединяется.
 
         Returns:
-            BaseQuery: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """ 
         ...
 
-    def filter(self, *args: Union[BaseJoin, BaseFunctions, BaseField], **params) -> 'BaseQuery':
+    def filter(self, *args: Union[CommonJoin, Field, Functions], **params) -> BuilderQueryTable:
         """Добавление фильтров в where блок запроса sql.
         
         Args:
@@ -81,22 +83,22 @@ class BaseQuery(ABC):
             params: Параметры выборки. `registration__between=('2021-01-02', '2021-04-06')`
 
         Returns:
-            BaseQuery: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """
         ...
     
-    def group_by(self, *args: Union[BaseField, str, List[str]]) -> 'BaseQuery':
+    def group_by(self, *args: Union[Field, str, List[str]]) -> BuilderQueryTable:
         """Группировка записей по полю.
 
         Args:
             args: Поля для группировки. `Field('company', 'name')` или `['name']`
 
         Returns:
-            BaseQuery: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """
         ...
     
-    def having(self, *args: Union[BaseJoin, BaseFunctions, BaseField], **params) -> 'BaseQuery':
+    def having(self, *args: Union[CommonJoin, Field, Functions], **params) -> BuilderQueryTable:
         """Добавление фильтров в having блок запроса sql.
         
         Args:
@@ -104,11 +106,11 @@ class BaseQuery(ABC):
             params: Параметры выборки. `registration__between=('2021-01-02', '2021-04-06')`
 
         Returns:
-            BaseQuery: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """
         ...
 
-    def order_by(self, *args: Union[BaseField], **kwargs) -> 'BaseQuery':
+    def order_by(self, *args: Union[Field], **kwargs) -> BuilderQueryTable:
         """Сортировка для sql запроса.
         
         Args:
@@ -116,29 +118,29 @@ class BaseQuery(ABC):
             params: Параметры сортировки. `age=Ordering.DESC`
 
         Returns:
-            BaseQuery: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """
         ...
 
-    def limit(self, value: int) -> 'BaseQuery':
+    def limit(self, value: int) -> BuilderQueryTable:
         """Ограничение записей в sql запросе.
 
         Args:
             value (int): Экземпляр запроса.
         
         Returns:
-            BaseQuery: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """
         ...
     
-    def offset(self, value: int) -> 'BaseQuery':
+    def offset(self, value: int) -> BuilderQueryTable:
         """Смещение.
 
         Args:
             value (int): Смещение по записям.
         
         Returns:
-            BaseQuery: Экземпляр запроса.
+            BuilderQueryTable: Экземпляр запроса.
         """
         ...
 

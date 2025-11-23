@@ -1,18 +1,23 @@
-from typing import Union
+from __future__ import annotations
+from typing import Union, TYPE_CHECKING
 from query_tables.query.functions import Field
-from query_tables.query.base_query import BaseQueryTable, BaseQuery, BaseJoin
+from query_tables.query.base_query import BaseQuery, BaseJoin, BaseQueryTable
+
+if TYPE_CHECKING:
+    from query_tables.query.query import Query
+    from query_tables.query_table import BuilderQueryTable
 
 
 class CommonJoin(BaseQuery, BaseJoin):
     
     def __init__(
-        self, join_table: Union['BaseQueryTable', 'BaseQuery'], 
+        self, join_table: Union[BuilderQueryTable, Query], 
         join_field: Union[Field, str], ext_field: Union[Field, str],
         table_alias: str = ''
     ):
         """
         Args:
-            join_table (BaseQueryTable): Таблица для join к другой таблице.
+            join_table (BuilderQueryTable): Таблица для join к другой таблице.
             join_field (Union[Field, str]): Поле join таблицы.
             ext_field (Union[Field, str]): Поле внешней таблицы.
             table_alias (str, optional): Псевдоним для таблицы. Нужен когда 
@@ -54,13 +59,13 @@ class Join(CommonJoin):
         Обертка для join запросах.
     """    
     def __init__(
-        self, join_table: Union['BaseQueryTable', 'BaseQuery'], 
+        self, join_table: Union[BuilderQueryTable, Query], 
         join_field: Union[Field, str], ext_field: Union[Field, str],
         table_alias: str = ''
     ):
         """
         Args:
-            join_table (BaseQueryTable): Таблица для join к другой таблице.
+            join_table (BuilderQueryTable): Таблица для join к другой таблице.
             join_field (Union[Field, str]): Поле join таблицы.
             ext_field (Union[Field, str]): Поле внешней таблицы.
             table_alias (str, optional): Псевдоним для таблицы. Нужен когда 
@@ -81,13 +86,13 @@ class LeftJoin(CommonJoin):
         Обертка для left join запросах.
     """    
     def __init__(
-        self, join_table: Union['BaseQueryTable', 'BaseQuery'], 
+        self, join_table: Union[BuilderQueryTable, Query], 
         join_field: Union[Field, str], ext_field: Union[Field, str],
         table_alias: str = ''
     ):
         """
         Args:
-            join_table (BaseQueryTable): Таблица для join к другой таблице.
+            join_table (BuilderQueryTable): Таблица для join к другой таблице.
             join_field (Union[Field, str]): Поле join таблицы.
             ext_field (Union[Field, str]): Поле внешней таблицы.
             table_alias (str, optional): Псевдоним для таблицы. Нужен когда 

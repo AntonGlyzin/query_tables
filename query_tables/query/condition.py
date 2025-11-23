@@ -1,5 +1,8 @@
-from typing import Optional
-from query_tables.query.base_query import BaseQuery
+from __future__ import annotations
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from query_tables.query.query import Query
 
 
 class Ordering(object):
@@ -14,13 +17,13 @@ class Condition(object):
     def __init__(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
-        self.query: Optional[BaseQuery] = None
+        self.query: Optional[Query] = None
     
-    def _set_query(self, query: BaseQuery) -> 'Condition':
+    def _set_query(self, query: Query) -> Condition:
         """Устанавливает запрос.
 
         Args:
-            query (BaseQuery): Экземпляр запроса.
+            query (Query): Экземпляр запроса.
         """        
         self.query = query
         return self
