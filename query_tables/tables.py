@@ -118,17 +118,19 @@ class Tables(BaseTables):
         Returns:
             Optional[List[Tuple]]: Результат.
         """
+        params = params or {}
+        cache_query = sql % params
         if delete_cache:
-            data = self._cache.delete_data_query(sql)
+            data = self._cache.delete_data_query(cache_query)
         if cache:
-            data = self._cache.get_data_query(sql)
+            data = self._cache.get_data_query(cache_query)
             if data:
                 return data
         with self._db as db_query:
             db_query.execute(sql, params)
             data = db_query.fetchall()
         if cache:
-            self._cache.save_data_query(sql, data)
+            self._cache.save_data_query(cache_query, data)
         return data
     
     def clear_cache(self):
@@ -192,17 +194,19 @@ class TablesAsync(BaseTables):
         Returns:
             Optional[List[Tuple]]: Результат.
         """
+        params = params or {}
+        cache_query = sql % params
         if delete_cache:
-            data = await self._cache.delete_data_query(sql)
+            data = await self._cache.delete_data_query(cache_query)
         if cache:
-            data = await self._cache.get_data_query(sql)
+            data = await self._cache.get_data_query(cache_query)
             if data:
                 return data
         async with self._db as db_query:
             await db_query.execute(sql, params)
             data = await db_query.fetchall()
         if cache:
-            await self._cache.save_data_query(sql, data)
+            await self._cache.save_data_query(cache_query, data)
         return data
     
     async def clear_cache(self):

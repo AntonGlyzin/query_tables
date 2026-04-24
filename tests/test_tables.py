@@ -202,6 +202,12 @@ class TestTables(BaseTest):
         self.assertEqual(len(res), 1)
         self.assertEqual(res[0]['person.name'], 'Anton 2')
         
+        logger.info('----Получение записи по ИД 2.')
+        res = table['person'].filter(id=3).get()
+        logger.debug(res)
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0]['person.name'], 'Anton 3')
+        
         logger.info('----Получение записи по части имени.')
         res = table['person'].filter(name__like='%%4').get()
         logger.debug(res)

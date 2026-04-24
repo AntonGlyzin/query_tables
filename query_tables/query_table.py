@@ -190,7 +190,8 @@ class QueryTable(BuilderQueryTable):
         if not self._cache.is_enabled_cache():
             raise DesabledCache()
         query = self._query.get()
-        return self._cache[query]
+        cache_query = query % self._query.params
+        return self._cache[cache_query]
 
     def delete_cache_query(self):
         """
@@ -199,7 +200,8 @@ class QueryTable(BuilderQueryTable):
         if not self._cache.is_enabled_cache():
             raise DesabledCache()
         query = self._query.get()
-        del self._cache[query]
+        cache_query = query % self._query.params
+        del self._cache[cache_query]
 
     def delete_cache_table(self):
         """
@@ -218,8 +220,9 @@ class QueryTable(BuilderQueryTable):
             List[Dict]: Записи.
         """
         query = self._query.get()
+        cache_query = query % self._query.params
         if self._cache.is_enabled_cache():
-            cache_data = self._cache[query].get()
+            cache_data = self._cache[cache_query].get()
             if cache_data:
                 return cache_data
         with self._db as db_query:
@@ -229,8 +232,8 @@ class QueryTable(BuilderQueryTable):
             dict(zip(self._query.map_fields, row)) for row in data
         ]
         if self._cache.is_enabled_cache() and res:
-            self._cache[query] = res
-            self._cache[query].use_tables(self._query.tables_query)
+            self._cache[cache_query] = res
+            self._cache[cache_query].use_tables(self._query.tables_query)
         return res
 
     def insert(self, *args: Union[List[Dict]], **params): 
@@ -300,7 +303,8 @@ class AsyncQueryTable(BuilderQueryTable):
             AsyncBaseCache: Кеш.
         """
         query = self._query.get()
-        return self._cache[query]
+        cache_query = query % self._query.params
+        return self._cache[cache_query]
 
     async def delete_cache_query(self):
         """
@@ -327,9 +331,10 @@ class AsyncQueryTable(BuilderQueryTable):
             Запрос на получение записей.
         """
         query = self._query.get()
+        cache_query = query % self._query.params
         enabled = await self._cache.is_enabled_cache()
         if enabled:
-            cache_data = await self._cache[query].get()
+            cache_data = await self._cache[cache_query].get()
             if cache_data:
                 return cache_data
         async with self._db as db_query:
@@ -339,7 +344,7 @@ class AsyncQueryTable(BuilderQueryTable):
             dict(zip(self._query.map_fields, row)) for row in data
         ]
         if enabled and res:
-            await self._cache[query].set_data(res, self._query.tables_query)
+            await self._cache[cache_query].set_data(res, self._query.tables_query)
         return res
 
     async def insert(self, records: List[Dict]): 
